@@ -14,7 +14,7 @@ HAZELNUT DESCRIPTION:
 -there can be multiple buds per node (usually when there are catkins) 
  
 DATASET:
--1: recording of 2020 bud fate, lenght, diameter, number of nodes of 1yo shoots;
+-1: recording of 2020 bud fate, length, diameter, number of nodes of 1yo shoots;
 -2: recording of bud fate, lenght, diameter, number of nodes of 1yo shoots born on the shoots analyzed in 2020
 
 
