@@ -25,3 +25,8 @@ STEP1 (meeting 21/10/2021):
   -is there a common zone composition that is shorter or longer depending on the lenght?
  
  -let Francesca training with data using some easier old dataset
+
+ STEP2 (meeting 28/10/2021):
+
+-discussion about datasets
+-Francesca first steps with Openalea
