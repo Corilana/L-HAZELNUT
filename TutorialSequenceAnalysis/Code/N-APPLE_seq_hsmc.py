@@ -12,7 +12,6 @@
 #
 #########################################################################
 
-
 from openalea.aml import *
 
 # N-APPLE
@@ -23,6 +22,7 @@ import numpy as np
 from Utils import *
 from amlseq2R import *
 
+#os.getcwd() returns the current working directory of a process
 print(os.getcwd())
 
 # Adapt to reflect your own path, commenting the lines below but not deleting them.
@@ -30,13 +30,14 @@ virtual = True
 if not(virtual):
     home_dir = "D:\\"
 else:
-    home_dir = "/media/sf_transfert"
-base_path = os.path.join(home_dir, "devlp_shared", "HazelnutFSPM", "TutorialSequenceAnalysis")
+    home_dir = "C:\\Users\\franc\\Desktop\\MtpData"
+base_path = os.path.join(home_dir, "HazelnutFSPM", "TutorialSequenceAnalysis")
 data_path = base_path
 
+#legge la sequenza
 seq1 = Sequences(data_path + os.sep + "multiseq_N_APPLE_unix.seq")
 
-# Python sequence 
+# Python sequence
 from openalea.sequence_analysis import sequences
 pyseq1 = sequences.Sequences(data_path + os.sep + "multiseq_N_APPLE_unix.seq")
 
@@ -44,7 +45,7 @@ pyseq1 = sequences.Sequences(data_path + os.sep + "multiseq_N_APPLE_unix.seq")
 pyseq1 = pyseq1.select_variable([3,4,5], True) 
 
 # To display data
-# Display(SelectVariable(ValueSelect(seq1, 2, 1), [1, 3, 4, 5]), ViewPoint="Data", Format="Line")
+Display(SelectVariable(ValueSelect(seq1, 2, 1), [1, 3, 4, 5]), ViewPoint="Data", Format="Line")
 
 # To plot the probability of variable 3 (actually the first meaningful variable) over index
 Plot(seq1, 'Intensity', 3)
@@ -74,7 +75,6 @@ Plot(seq1, 'Intensity', 5)
 # Zone 0'': majority 0
 # Zone 1'': majority 1
 
-
 # Make one Sequences object per cultivar and discard cultivar variable
 seq11 = SelectVariable(ValueSelect(seq1, 2, 1), [1, 3, 4, 5]) # 38 sequences
 seq12 = SelectVariable(ValueSelect(seq1, 2, 2), [1, 3, 4, 5]) # 40 sequences
@@ -94,7 +94,7 @@ c_index = np.array([seq_len(seq11), seq_len(seq11) + seq_len(seq12), seq_len(seq
 Plot(seq11, 'Intensity', 2)
 # Zones are roughly as in global. There seems to be less 1 (short S) in Zone 1 and more in Zone 3
 # with less 2 (medium S) in Zone 3. Also more 3 (long S) in zone 4 and reduced or missing Zone 4? 
-# Value 4 (sylleptic S) does not appear in Zone 0 anymore (nor anywhere else).Plot(seq11, 'Intensity', 3)
+# Value 4 (sylleptic S) does not appear in Zone 0 anymore (nor anywhere else).
 Plot(seq11, 'Intensity', 3)
 # Similar to global. Value 2 (LF in distal zone) becomes more probable in zone 1'.
 Plot(seq11, 'Intensity', 4)
