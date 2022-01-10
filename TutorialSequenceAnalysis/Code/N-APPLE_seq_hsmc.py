@@ -143,7 +143,7 @@ Plot(ExtractHistogram(seq1, "Length"))
 
 # trivariate hidden semi-Markov chain 
 nb_states = 5 # number of states, you have to try several values and compare BIC / ICL values
-hsmc1 = Estimate(seq1v, "HIDDEN_SEMI-MARKOV", "Ordinary", nb_states, "LeftRight")   
+hsmc1 = Estimate(seq1v, "HIDDEN_SEMI-MARKOV", "Ordinary", nb_states, "LeftRight")
 
 # BIC  -18349.1, ICL  -18764.3
 
