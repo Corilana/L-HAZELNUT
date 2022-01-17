@@ -12,14 +12,15 @@ colnames(df)=c(colnames(all)[c(5,7)],"TreeID",colnames(all)[c(6,4,8:11)],"sum_bu
 #adding ID shoots and Ranks node to dataframe
 # df[1:2]=unique(all[5:13])[c(1,3)]
 
-s.prev=-1
-r.prev=-1
-nline=dim(all[1])
+s.prev=-1#preavious shoot
+r.prev=-1#preavious rank
+nline=dim(all[1])#lines af all.csv
+
 for (i in 1:nline) {
   s=all$shoot1yo[i]
   r=all$rank1yo[i]
   if ((s!=s.prev)&(r!=r.prev)) {#situation1: shoot and rank are different from previous. 
-    count=1
+    count=1#what does is it for?
     x=all$X.newshoot2yo[i]#x=number of duplication
     if((i==nline)|(all$shoot1yo[i+1]!=s)){#situation1a: s and r are different but r is the last one
       x=x-1#x=-1 because there is the apical
