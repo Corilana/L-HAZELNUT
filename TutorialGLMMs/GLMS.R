@@ -6,30 +6,97 @@ all <- read.csv("C:/Users/franc/Google Drive/PhD/Deruta/auto/all.csv")
 all[all$c>1,8]=1
 all[all$b>1,11]=1
 
-df=data.frame(matrix(ncol=14, nrow = 0))#create an empty df
-colnames(df)=c(colnames(all)[c(5,7)],"TreeID",colnames(all)[c(6,4,8:11)],"sum_buds",colnames(all)[17],"dev_fromV","dev_fromM", "dev_fromother")
+# df=data.frame(matrix(ncol=14, nrow = 0))#create an empty df
+# colnames(df)=c(colnames(all)[c(5,7)],"TreeID",colnames(all)[c(6,4,8:11)],"sum_buds",colnames(all)[17],"dev_fromV","dev_fromM", "dev_fromother")
+
+df=all[FALSE,]#EMPTY DF
 
 #adding ID shoots and Ranks node to dataframe
 # df[1:2]=unique(all[5:13])[c(1,3)]
 
-s.prev=-1#preavious shoot
-r.prev=-1#preavious rank
-nline=dim(all[1])#lines af all.csv
+s.prev=0#preavious shoot
+r.prev=0#preavious rank
+p.prev=0#previous position
+d.prev=0#previous derived from
+l.prev=0
+nline=dim(all[1])[1]#lines af all.csv
 
+#what to do?
+#write a new dataframe with row repetition as many buds per rank
+#if a rank is apical remove derived from apical
+
+for (i in 1:5) {
+  s=all$shoot1yo[i]
+  r=all$rank1yo[i]
+  d=all$derived.from[i]
+  p=all$position[i]
+  l=all$length2yo.cm.[i]
+  # p=all$position[i]
+  if ((s!=s.prev)&(r!=r.prev)) {#situation1: shoot and rank are different from previous. So first node
+    x=all$X.oss[i]#x=number of buds
+    df=rbind(df, all[rep(i, each = x), ])
+  } 
+  if (s==s.prev) {#situation2: same shoot
+    x=x
+    if(p=="AP"){
+        x=0
+    }
+    if(r!=r.prev){
+      if(r!=all$rank1yo[i+1]){
+      x=x
+      } else {
+        if ((l==all$length2yo.cm.[i+1])&(d==all$derived.from[i+1])){
+          x=x-1
+        }
+        x=x
+      }
+      }
+    if(r==r.prev){
+      if(d==d.prev&l=l.prev){
+        x=0
+      } else {
+        x=1
+      }
+    }
+    
+    df=rbind(df, all[rep(i, each = x), ])
+    }
+  s.prev=s
+  r.prev=r
+  d.prev=d
+  p.prev=p
+}
+
+
+#questo per duplicare
 for (i in 1:nline) {
   s=all$shoot1yo[i]
   r=all$rank1yo[i]
+ # p=all$position[i]
   if ((s!=s.prev)&(r!=r.prev)) {#situation1: shoot and rank are different from previous. 
-    count=1#what does is it for?
-    x=all$X.newshoot2yo[i]#x=number of duplication
-    if((i==nline)|(all$shoot1yo[i+1]!=s)){#situation1a: s and r are different but r is the last one
-      x=x-1#x=-1 because there is the apical
+    x=all$X.oss[i]#x=number of buds
+    df=rbind(df, all[rep(i, each = x), ])
+    } 
+  
+  if ((s==s.prev)&(r!=r.prev)) {#situation2: s is the same and r is different 
+    x=all$X.oss[i]
+    
+    if((i==nline-1)|(all$shoot1yo[i+2]!=s)){#when r is the last one
+      x=x-1#x=-1 because one bud is the apica
       }
-    } else {
-      if ((s==s.prev)&(r==r.prev)) { #situation2: shoot is the same and rank is the same as precedent
-      count=count+1
-      
-      if (count==x){
+    
+    df=rbind(df, all[rep(i, each = x), ])} 
+  else {#situation3: when there is duplication
+    x=0
+    df=rbind(df, all[rep(i, each = x), ])}
+  
+   s.prev=s
+   r.prev=r
+}
+  
+
+   
+          if (count==x){
         m=all$m[i]
         v=all$v[i]
         
@@ -58,42 +125,6 @@ for (i in 1:nline) {
   # And yes, the point I forgot is that you have to read all$Apical or course.
   
   
-#step by step
-#1_ changing apical buds
-apical=all[all$position=="AP",]
-lateral=all[all$position!="AP",]
-df1=data.frame(matrix(ncol=14, nrow = 938))
-colnames(df1)=colnames(df)
-df1[1:2]=unique(lateral[4:7])[c(2,4)]
-s=lateral$shoot1yo
-nline=length(unique(s))
-r=lateral$rank1yo
-ls=df1$shoot1yo
-lr=df1$rank1yo
-
-for (i in 1:nline) {
-  S=unique(s)[i]
-  
-  for (q in 1:length(unique(r))) {
-    R=unique(r)[q]
-    
-    df1[ls==S&lr==R,3]=plant[plant$shoot==S&plant$tesi=="auto",6]
-    df1[ls==S&lr==R,4:11]=unique(lateral[s==S&r==R,c(6,4,8:11,13,17)])
-    df1[ls==S&lr==R,12]=length(lateral[s==S&r==R&lateral$derived.from=="M",18])
-    df1[ls==S&lr==R,13]=length(lateral[s==S&r==R&lateral$derived.from=="V",18])
-    df1[ls==S&lr==R,14]=length(lateral[s==S&r==R&lateral$derived.from!="M"&lateral$derived.from!="V",18])
-    
-  }
-  
-}
-
-df1[df1$X.newshoot2yo==0,12:14]=0
-df1$buds_developed=rowSums(df1[12:14])
-
-df1$w=rowSums(df1[7:8])
-
-df.expanded <- df1[rep(row.names(df1), df1$w),]
-
 
 
 #(sum(df[14])/sum(df$buds_developed))*100#10.5 errore che ho fatto io nell'attribuire la provenienza delle gemme
