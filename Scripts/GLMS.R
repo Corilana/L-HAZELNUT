@@ -25,7 +25,7 @@ nline=dim(all[1])[1]#lines af all.csv
 #write a new dataframe with row repetition as many buds per rank
 #if a rank is apical remove derived from apical
 
-for (i in 1:5) {
+for (i in 1:nline) {
   s=all$shoot1yo[i]
   r=all$rank1yo[i]
   d=all$derived.from[i]
