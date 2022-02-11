@@ -1,7 +1,12 @@
-setwd("C:/Users/franc/Google Drive/PhD/Deruta/R/auto/Lateral")
+
+# my.wd = "C:/Users/franc/Google Drive/PhD/Deruta/R/auto/Lateral"
+my.wd = "./TutorialGLMMs/"
+setwd(my.wd)
 library(stats)
 
-lat=read.csv("C:/Users/franc/Google Drive/PhD/Deruta/DF/auto/mtp use/bud_level_LATERALS.csv")
+lat.path = "../Dataframes/bud_level_LATERALS.csv"
+# lat.path = "C:/Users/franc/Google Drive/PhD/Deruta/DF/auto/mtp use/bud_level_LATERALS.csv")
+lat=read.csv(lat.path)
 lat[lat$c>1,7]=1
 
 #glm(Y~P1+P2+P3+P4+P5+P6+P7)
