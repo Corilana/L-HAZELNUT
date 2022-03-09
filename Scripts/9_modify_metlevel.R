@@ -20,7 +20,7 @@ fa=grep("fate",colnames(bud))
 nlat=grep("n_lat",colnames(met))
 nap=grep("n_ap",colnames(met))
 wh=grep("fate_a",colnames(met))
-insy=grep("is_in_sy",colnames(bud))
+insy=grep("from_",colnames(bud))
 org=grep("shoot_type",colnames(met))
 
 for (i in 1:nline) {

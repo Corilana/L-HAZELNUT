@@ -191,13 +191,13 @@ for (i in 1:nshoot) {
 
 #adding the informations regarding the new shoots
 new=newshot.level[newshot.level$X.newshoot2yo!=0,]#eliminiamo righe senza nuovi germogli
-bud=bud.level[bud.level$number_new_shoots!=0,1:15]#eliminiamo righe senza nuovi germogli
+bud=bud.level[bud.level$number_new_shoots!=0,]#eliminiamo righe senza nuovi germogli
 new=new[with(new, order(shoot1yo, rank1yo, fate)), ]#make the same order so that i can paste
 bud=bud[with(bud, order(shoot, rank_node, fate)), ]#make the same order so that i can paste
 all.equal(bud$rank_node,new$rank1yo)#check if they are actually identical
 sacco=data.frame(matrix(nrow = 0, ncol = 0))
 sacco=cbind(bud, new[14:22])
-pieno=bud.level[bud.level$number_new_shoots==0,1:15]#eliminiamo righe con nuovi germogli
+pieno=bud.level[bud.level$number_new_shoots==0,]#eliminiamo righe con nuovi germogli
 bud.level=rbind.fill(sacco,pieno)#unisci i df con germogli (sacco) e senza (pieno)
 bud.level=bud.level[with(bud.level, order(shoot, rank_node)), ]#order
 
@@ -223,13 +223,13 @@ SY=bud.level[bud.level$position=="AP"&bud.level$fate=="C",]#CE NE SONO SOLO DUE 
 #changing NUMBER of new shoots to 0 (not developed) or 1 (developed)
 colnames(bud.level)[tot_b]=c("new_shoots")
 bud.level[bud.level$new_shoots>1,tot_b]=1
-bud.level=dplyr::mutate(bud.level, is_in_sylleptic=NA, .before=length2yo.cm.)
+bud.level=dplyr::mutate(bud.level, from_=NA, .before=length2yo.cm.)
 nline=length(bud.level$tesi)
 for (i in 1:nline) {
   f=bud.level$fate[i]
   c=bud.level$c[i]
   po=bud.level$position[i]
-  if(f=="C"|c>=1){bud.level$is_in_sylleptic[i]="YES"} else{bud.level$is_in_sylleptic[i]="NO"} 
+  if(f=="C"|c>=1){bud.level$from_[i]="SYL"} else{bud.level$from_[i]="PROL"} 
   #CI SONO SOLO DUE APICALI CHE SONO SILLEPTICI
 }
 

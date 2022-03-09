@@ -14,7 +14,7 @@ nline=length(ann$shoot)
 po=grep("posi", colnames(bud))
 fa=grep("fate", colnames(bud))
 fa_a=grep("fate", colnames(ann))
-sy=grep("in_s", colnames(bud))
+sy=grep("from_", colnames(bud))
 n_l=grep("n_l", colnames(ann))
 n_a=grep("n_a", colnames(ann))
 n_s=grep("n_s", colnames(ann))
@@ -22,7 +22,7 @@ for (i in 1:nline) {
   s=ann$shoot[i]#identify the shoot
   l=length(bud[bud$shoot==s&bud$position=="LATERAL",po])#how many laterals
   a=length(bud[bud$shoot==s&bud$position=="AP",po])#many apicals
-  syl=length(bud[bud$shoot==s&bud$position=="LATERAL"&bud$is_in_sylleptic=="YES",sy])#many sylleptic
+  syl=length(bud[bud$shoot==s&bud$position=="LATERAL"&bud$from_=="SYL",sy])#many sylleptic
   if (a==1) {
     f=bud[bud$shoot==s&bud$position=="AP",fa]
     ann[ann$shoot==s,fa_a]=f

@@ -7,7 +7,7 @@ ann=read.csv("C:/Users/franc/Google Drive/PhD/Deruta/DF/auto/2020shoot_level.csv
 
 met=data.frame(matrix(ncol = 0, nrow=0))#empty df to create metamer level
 col_i=grep("tesi$", colnames(ann))#column thesis
-col_f=grep("Tree$", colnames(ann))#column tree
+col_f=grep("^node$", colnames(ann))#column tree
 c=grep(paste0("^","c","$"), colnames(ann))#column catkins
 b=grep(paste0("b","$"), colnames(ann))#column blind
 
@@ -27,6 +27,32 @@ for (i in 1:nline) {
     colnames(s)[s_i:s_f]=colnames(ann)[c:b]
     met=rbind.fill(met, s)
   }
+}
+
+#change name of the columns of met dataframe
+col_f=grep("^node$", colnames(met))#column tree
+colnames(met)[col_f]="Length(node)"
+
+#create distance with the mean rank (mean rank=0)
+met=dplyr::mutate(met, median_distance=NA, .after=rank_node)#add new column for the distance
+nshoot=length(unique(met$shoot))
+ran=grep("rank_",colnames(met))
+len=grep(")$",colnames(met))
+
+lat=met[0,0]#df to store the median
+for (i in 1:nshoot) {#writing a column with the median rank
+  s=unique(met$shoot)[i]
+  l=unique(met[met$shoot==s,len])
+  m=median(met[met$shoot==s,ran])
+  a=as.data.frame(rep(m, each = l))
+  lat=rbind(lat,a)
+}
+
+dis=grep("dis",colnames(met))
+
+nline=length(met$tesi)
+for (i in 1:nline) {#write a column with the absolute value of distance with rank mean
+  met[i,dis]=abs(met[i,ran]-lat[i,1])
 }
 
 v=grep(paste0("v","$"), colnames(met))#column vegetative

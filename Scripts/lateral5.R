@@ -1,87 +1,97 @@
-setwd("C:/Users/franc/Google Drive/PhD/Deruta/R/auto/Lateral")
-#COMPOSIZIONE DATASET
+#EXPLORATORY ANALYSIS
+wd="C:/Users/franc/Google Drive/PhD/Deruta/"
+setwd(paste0(wd,"R/auto/Lateral/exploratory/"))
 
 #importiamo la liberia
 library(dplyr)
-library(tidyr)
+library(tibble)
 library(RColorBrewer)
-library(corrplot)
+library(tidyr)
+library(rstatix)
 
 #bud scale
-lat=read.csv("C:/Users/franc/Google Drive/PhD/Deruta/DF/auto/mtp use/bud_level_LATERALS.csv")
+lat=read.csv(paste0(wd,"DF/auto/mtp use/bud_level_LATERALS.csv"))
 lat <- dplyr::mutate(lat, class = factor(class,levels = c("Sh", "Me", "Lo", "VLo")))
 lat <- dplyr::mutate(lat, length.newshoots = factor(length.newshoots,levels = c("Sh", "Me", "Lo", "VLo")))
 lat=lat[order(lat$length.newshoots),]
 
+#met.scale
 met=read.csv("C:/Users/franc/Google Drive/PhD/Deruta/DF/auto/mtp use/met_level_develop_lateralbuds.csv")
 met <- dplyr::mutate(met, class = factor(class,levels = c("Sh", "Me", "Lo", "VLo")))
 
-#proleptic: realizzo una tabella di contingenza
-#in cui per ogni rank node parentale, metto la classe di lunghezza dei laterali sono più laterali per nodo)
-prol=subset(lat, lat$is_in_sylleptic=="NO")#dataset solo con i NON sylleptic
-nshoot=length(lat$shoot)
-nrank=max(lat$rank_node)
+#1: what is the combination of lateral childs in proleptic?
+#dataset solo con i PROLEPTIC
+prol=subset(lat, lat$from_=="PROL")
 
-ndf=data.frame(matrix(ncol=3, nrow = length(met$tesi)))#new def (rank~newshoots)
-ndf[c(1,2)]=met[c(4,6)]
-colnames(ndf)[c(1,2)]=colnames(met)[c(4,6)]
+lne=grep("^length.ne", colnames(prol))#adress the column with the class of the child
+TAB=lat[0,0]#empty df
 
-lne=grep("^length.ne", colnames(prol))
+nshoot=length(unique(sort(lat$shoot)))#first loop length
+nrank=length(unique(sort(lat$rank_node)))#second loop length
 for (i in 1:nshoot) {
-  I=lat$shoot[i]
+  I=unique(sort(lat$shoot))[i]
   for (j in 1:nrank) {
-    m=prol[prol$shoot==I&prol$rank_node==j,lne]
-    q=paste0(m[!is.na(m)], collapse = "+")
-    ndf[ndf$shoot==I&ndf$rank_node==j,3]=q
+    J=unique(sort(lat$rank_node))[j]
+    m=prol[prol$shoot==I&prol$rank_node==J,lne]
+    if (length(m)!=0) {
+      q=paste0(m[!is.na(m)], collapse = "+")
+      bi=cbind("shoot"=I, "rank_node"=J, "laterals"=q)
+      TAB=rbind(TAB, bi)
+    }
   }
 }
 
-ndf=ndf[ndf$X3!="",]
+TAB$rank_node=as.numeric(TAB$rank_node)
+TAB=TAB[TAB$laterals!="",]
+TAB=TAB[order(TAB$rank_node),]
 
-r=table(ndf$rank_node,ndf$X3)
+r=table(TAB$rank_node,TAB$laterals)
 t=prop.table(r,margin=1)*100
-#graph5a
-png("5a_prol.png",width=1200, height=900, res=150)# save plot
+#graph
+png("5.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
 cols<-brewer.pal(n=length(colnames(r)),name="Set3")
 x<-barplot(t(r),col = cols,main="combinations of laterals from proleptic buds", xlab= "Rank nodes", ylab="# of child class")
 legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(r)),fill = cols, cex=0.6)
 dev.off()
 
-#graph5b
-png("5b_prol.png",width=1200, height=900, res=150)# save plot
+#graph
+png("5a.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
 cols<-brewer.pal(n=length(colnames(t)),name="Set3")
 x<-barplot(t(t),col = cols,main="combinations of laterals from proleptic buds", xlab= "Rank nodes", ylab="% of child class", ylim=c(0,100))
 legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(t)),fill = cols, cex=0.6)
 dev.off()
 
-#sylleptic: realizzo una tabella di contingenza
-#in cui per ogni rank node parentale, metto la classe di lunghezza dei laterali sono più laterali per nodo)
-sil=subset(lat, lat$is_in_sylleptic=="YES")#dataset solo con i sylleptic
-nshoot=length(lat$shoot)
-nrank=max(lat$rank_node)
+#2: what is the combination of lateral childs in proleptic?####
+sil=subset(lat, lat$from_=="SYL")
 
-ndf=data.frame(matrix(ncol=3, nrow = length(met$tesi)))#new def (rank~newshoots)
-ndf[c(1,2)]=met[c(4,6)]
-colnames(ndf)[c(1,2)]=colnames(met)[c(4,6)]
+lne=grep("^length.ne", colnames(sil))#adress the column with the class of the child
+TAB=lat[0,0]#empty df
 
-lne=grep("^length.ne", colnames(sil))
+nshoot=length(unique(sort(lat$shoot)))#first loop length
+nrank=length(unique(sort(lat$rank_node)))#second loop length
 for (i in 1:nshoot) {
-  I=lat$shoot[i]
+  I=unique(sort(lat$shoot))[i]
   for (j in 1:nrank) {
-    m=sil[sil$shoot==I&sil$rank_node==j,lne]
-    q=paste0(m[!is.na(m)], collapse = "+")
-    ndf[ndf$shoot==I&ndf$rank_node==j,3]=q
+    J=unique(sort(lat$rank_node))[j]
+    m=sil[sil$shoot==I&sil$rank_node==J,lne]
+    if (length(m)!=0) {
+      q=paste0(m[!is.na(m)], collapse = "+")
+      bi=cbind("shoot"=I, "rank_node"=J, "laterals"=q)
+      TAB=rbind(TAB, bi)
+    }
   }
 }
 
-ndf=ndf[ndf$X3!="",]
+TAB$rank_node=as.numeric(TAB$rank_node)
+TAB=TAB[TAB$laterals!="",]
+TAB=TAB[order(TAB$rank_node),]
 
-r=table(ndf$rank_node,ndf$X3)
+r=table(TAB$rank_node,TAB$laterals)
 t=prop.table(r,margin=1)*100
-#graph5a
-png("5a_sylleptic.png",width=1200, height=900, res=150)# save plot
+#graph
+png("5c.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
 cols<-brewer.pal(n=length(colnames(r)),name="Set3")
 x<-barplot(t(r),col = cols,main="combinations of laterals from sylleptic buds", xlab= "Rank nodes of parental", ylab="# of child class")
@@ -89,10 +99,9 @@ legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(r)),fill =
 dev.off()
 
 #graph5b
-png("5b_sylleptic.png",width=1200, height=900, res=150)# save plot
+png("5d.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
 cols<-brewer.pal(n=length(colnames(t)),name="Set3")
 x<-barplot(t(t),col = cols,main="combinations of laterals from sylleptic buds", xlab= "Rank nodes of parental", ylab="% of child class", ylim=c(0,100))
 legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(t)),fill = cols, cex=0.6)
 dev.off()
-

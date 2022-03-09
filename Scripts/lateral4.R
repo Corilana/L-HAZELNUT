@@ -1,128 +1,124 @@
-setwd("C:/Users/franc/Google Drive/PhD/Deruta/R/auto/Lateral")
-#COMPOSIZIONE DATASET
+#EXPLORATORY ANALYSIS
+wd="C:/Users/franc/Google Drive/PhD/Deruta/"
+setwd(paste0(wd,"R/auto/Lateral/exploratory/"))
 
 #importiamo la liberia
 library(dplyr)
-library(tidyr)
+library(tibble)
 library(RColorBrewer)
-library(corrplot)
+library(tidyr)
+library(rstatix)
+library(gridExtra)
 
 #metamer level
 met=read.csv("C:/Users/franc/Google Drive/PhD/Deruta/DF/auto/mtp use/met_level_develop_lateralbuds.csv")
 met <- dplyr::mutate(met, class = factor(class,levels = c("Sh", "Me", "Lo", "VLo")))
 
-#proleptic shoots
-prolep=met
-#elimino tutte le gemme associate con i sylleptic
-c=grep("^c$", colnames(prolep))
-v=grep("^v$", colnames(prolep))
-m=grep("^m$", colnames(prolep))
-b=grep("^b$", colnames(prolep))
-nl=grep("^n_la", colnames(prolep))
-for (i in 1:nrow(prolep)) {
-  if (prolep[i,c]==1) {
-    prolep[i,c(v,m,b)]=0
-    prolep[i,nl]=1#change the number of buds at that rank with 1 when there are sylleptic
+#in proleptic df, we have to put the observations inside the sylleptic as 0
+#and indicate the presence/absence of sylleptic shoots, at that node, with 0(abs) or 1(pres)
+proleptic=met#copy df metamer level
+
+c=grep("^c$", colnames(proleptic))
+v=grep("^v$", colnames(proleptic))
+m=grep("^m$", colnames(proleptic))
+b=grep("^b$", colnames(proleptic))
+nl=grep("^n_la", colnames(proleptic))
+
+for (q in 1:nrow(proleptic)) {
+  if (proleptic[q,c]==1) {
+    proleptic[q,c(m,v,b)]=0#trasform to zero the values of the buds in sylleptic
+    proleptic[q,nl]=1#change the sum of lat buds at that rank with 1 when there are sylleptic
   }
+  
 }
 
-#how many buds per node in proleptic shoots?
-ranksyl=table(prolep$rank_node, prolep$n_lateral_buds)
+colnames(proleptic)[c]="sylleptic"#CHANGE THE name of COLUMN "C" WITH "SYLLEPTIC"
 
-#in questo grafico le gemme nei sylleptic NON vengono contate
-png("4b.png",width=1200, height=900, res=150)# save plot
+#1:multiple buds ~ rank node in prolepotic?####
+ranksyl=table(proleptic$rank_node, proleptic$n_lateral_buds)
+
+#graph
+png("4.png",width=1200, height=900, res=150)# save plot
 cols<-brewer.pal(n=length(colnames(ranksyl)),name="Set3")
 x<-barplot(t(ranksyl),col = cols,main="number of buds/sylleptic per rank in proleptic shoots", xlab= "Rank nodes", ylab="# of multiple buds/sylleptic")
 legend("topright",inset=c(-0.03,-0.1),xpd = TRUE, legend = rownames(t(ranksyl)),fill = cols, cex=0.8)
 dev.off()
 
+#proportions
 ranksyl=prop.table(ranksyl,margin=1)*100#propporzioni per ogni rango nodo delle differenti combinazioni di numero di gemme
 head(ranksyl,20)
 
-#graph4d
-png("4d.png",width=1200, height=900, res=150)# save plot
+#graph
+png("4a.png",width=1200, height=900, res=150)# save plot
 cols<-brewer.pal(n=length(colnames(ranksyl)),name="Set3")
 x<-barplot(t(ranksyl),col = cols, main="% of buds/sylleptic per rank in proleptic shoots", xlab= "Rank nodes", ylab="% of multiple buds", ylim=c(0,100))
 legend("topright",inset=c(-0.03,-0.1),xpd = TRUE, legend = rownames(t(ranksyl)),fill = cols, cex=0.8)
 dev.off()
 
-# #what is the possible number of buds per node rank?
-# #considerando catkin e gemme associate come sylleptic
-# comb_prolep=as.data.frame.matrix(table(prolep$v,prolep$m))
-# colnames(comb_prolep)=c("0m", "1m", "2m", "3m", "4m", "5m")
-# rownames(comb_prolep)=c("0v","1v", "2v", "3v", "4v")
-# comb_prolep
-# 
-# #m e v sono correlate?
-# # chisq=chisq.test(combi)#p_value <0.05 quindi m e v sono dipendenti
-# # corrplot(chisq$residuals, is.corr = F)
+#2: what is the composition of multiple buds in proleptic?####
+nline=length(proleptic$tesi)
 
-#what is the composition of mmultiple buds in proleptic?
-#modifico prolep in modo tale da generare le comb_prolep
-prolep$c <- gsub("1", "sylleptic", prolep$c)
-prolep$v <- gsub("1", "v", prolep$v)
-prolep$m <- gsub("1", "m", prolep$m)
-prolep$b <- gsub("1", "b", prolep$b)
-prolep$v <- gsub("2", "v+v", prolep$v)
-prolep$m <- gsub("2", "m+m", prolep$m)
-prolep$v <- gsub("3", "v+v+v", prolep$v)
-prolep$m <- gsub("3", "m+m+m", prolep$m)
-prolep$v <- gsub("4", "v+v+v+v", prolep$v)
-prolep$m <- gsub("4", "m+m+m+m", prolep$m)
-prolep$m <- gsub("5", "m+m+m+m+m", prolep$m)
-prolep[prolep$c==0,c]=NA
-prolep[prolep$v==0,v]=NA
-prolep[prolep$m==0,m]=NA
-prolep[prolep$b==0,b]=NA
-head(prolep,20)
+s=grep("^sylleptic", colnames(proleptic))
 
-ne=ncol(prolep)+1
-nline=length(unique(prolep$shoot))
-nliner=length(unique(prolep$rank_node))
+tot=c(s,v,m,b)
+
+#change the number of buds with the letter (es. 1v =v)
+for (i in 1:nline) {
+  for (j in 1:length(tot)) {
+    J=tot[j]
+    l=proleptic[i,J]
+    if (l!=0) {
+      name=colnames(proleptic)[J]
+      proleptic[i,J]=paste0(rep(name, each = l), collapse = "+")
+    } else {proleptic[i,J]=NA}
+  }
+}
+
+#merge with + es( v and m = v+m)
+ne=ncol(proleptic)+1
+nline=length(unique(proleptic$shoot))#TOT SHOOTS
+nliner=length(unique(proleptic$rank_node))#TOT RANKS
+
 for (i in 1:nline){
-  
-  I=unique(sort(prolep$shoot))[i]
-  
+  I=unique(sort(proleptic$shoot))[i]
   for (t in 1:nliner){
-    
-    K= unique(sort(prolep$rank_node))[t]
-    prolep[prolep$shoot==I & prolep$rank_node==K,ne]<-unite(prolep[prolep$shoot==I & prolep$rank_node==K,c(c,v,m,b)], col="merge", na.rm = TRUE, sep = '+')
+    K= unique(sort(proleptic$rank_node))[t]
+    proleptic[proleptic$shoot==I & proleptic$rank_node==K,ne]<-unite(proleptic[proleptic$shoot==I & proleptic$rank_node==K,c(c,v,m,b)],
+                                                                     col="merge", na.rm = TRUE, sep = '+')
     
   }
 }
 
-head(prolep,20)
-
-#what is the possible combinations of lateral buds per node rank?
-bind=as.data.frame.matrix(table(prolep$rank_node,prolep$merge))
+#3: what is the possible combinations of lateral buds per node rank?####
+bind=as.data.frame.matrix(table(proleptic$rank_node,proleptic$merge))
 head(bind,20)
 
-#graph4e_numbers in proleptic
-png("4e.png",width=1200, height=900, res=150)# save plot
+#graph
+png("4b.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
 cols<-c(brewer.pal(name="Spectral", n=11)[c(2:5,9:11)],brewer.pal(name="Dark2", n = 7))
 x<-barplot(t(bind[1:17,]),col = cols,main="# combination of buds/sylleptic in proleptic shoots ", xlab= "Rank nodes", ylab="# of observation")
 legend("topright",inset = c(-0.3, +0.01),xpd = TRUE, legend = rownames(t(bind)),fill = cols, cex=0.6)
 dev.off()
 
-merg=as.data.frame.matrix(prop.table(table(prolep$rank_node,prolep$merge), margin=1)*100)
+merg=as.data.frame.matrix(prop.table(table(proleptic$rank_node,proleptic$merge), margin=1)*100)
 head(merg,20)
 
-#graph4f_percentage in proleptic
-png("4f.png",width=1200, height=900, res=150)# save plot
+#graph
+png("4c.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
 cols<-c(brewer.pal(name="Spectral", n=11)[c(2:5,9:11)],brewer.pal(name="Dark2", n = 7))
-x<-barplot(t(merg[1:17,]),col = cols,main="% combination of buds/sylleptic in proleptic shoots ", xlab= "Rank nodes", ylab="% of observation", ylim=c(0,100))
+x<-barplot(t(merg[1:17,]),col = cols,main="% combination of buds/sylleptic in proleptictic shoots ", xlab= "Rank nodes", ylab="% of observation", ylim=c(0,100))
 legend("topright",inset = c(-0.3, +0.01),xpd = TRUE, legend = rownames(t(merg)),fill = cols, cex=0.6)
 dev.off()
 
-#what is the variability in sylleptic shoots?
-#df just for buds inside silleptic
+#4: multiple buds ~ rank node in sylleptic?####
 sil=subset(met, shoot_type=="SYLLEPTIC")#dataset solo con i sylleptic 
 
 ranksi=table(sil$rank_node, sil$n_lateral_buds)
-#in questo grafico conto catkin e le gemme nei sylleptic
-png("4g.png",width=1200, height=900, res=150)# save plot
+
+#graph
+png("4d.png",width=1200, height=900, res=150)# save plot
 cols<-brewer.pal(n=length(colnames(ranksi)),name="Set3")
 x<-barplot(t(ranksi),col = cols,main="number of buds into sylleptic", xlab= "Rank nodes of parental", ylab="# of buds in sylleptic")
 legend("topright",inset=c(-0.03,-0.1),xpd = TRUE, legend = rownames(t(ranksi)),fill = cols, cex=0.8)
@@ -132,35 +128,34 @@ ranksi=prop.table(ranksi,margin=1)*100#propporzioni per ogni rango nodo delle di
 head(ranksi,20)
 
 #graph4h
-png("4h.png",width=1200, height=900, res=150)# save plot
+png("4e.png",width=1200, height=900, res=150)# save plot
 cols<-brewer.pal(n=length(colnames(ranksi)),name="Set3")
 x<-barplot(t(ranksi),col = cols, main="% of buds in sylleptic", xlab= "Rank nodes of parental", ylab="% of buds in sylleptic", ylim=c(0,100))
 legend("topright",inset=c(-0.03,-0.1),xpd = TRUE, legend = rownames(t(ranksi)),fill = cols, cex=0.8)
 dev.off()
 
-#combination of buds in sylleptic shoots
-#modifico b in modo tale da generare le combinazioni 
-c=grep("^c$", colnames(sil))
+#5: what is the composition of multiple buds in sylleptic?####
+nline=length(sil$tesi)
+
+s=grep("^c$", colnames(sil))
 v=grep("^v$", colnames(sil))
 m=grep("^m$", colnames(sil))
 b=grep("^b$", colnames(sil))
-sil$c <- gsub("1", "c", sil$c)
-sil$v <- gsub("1", "v", sil$v)
-sil$m <- gsub("1", "m", sil$m)
-sil$b <- gsub("1", "b", sil$b)
-sil$v <- gsub("2", "v+v", sil$v)
-sil$m <- gsub("2", "m+m", sil$m)
-sil$v <- gsub("3", "v+v+v", sil$v)
-sil$m <- gsub("3", "m+m+m", sil$m)
-sil$v <- gsub("4", "v+v+v+v", sil$v)
-sil$m <- gsub("4", "m+m+m+m", sil$m)
-sil$m <- gsub("5", "m+m+m+m+m", sil$m)
-sil$v <- gsub("5", "v+v+v+v+v", sil$v)
-sil$m <- gsub("6", "m+m+m+m+m+m", sil$m)
-sil[sil$v==0,v]=NA
-sil[sil$m==0,m]=NA
-sil[sil$b==0,b]=NA
+tot=c(s,v,m,b)
 
+#change the number of buds with the letter (es. 1v =v)
+for (i in 1:nline) {
+  for (j in 1:length(tot)) {
+    J=tot[j]
+    l=sil[i,J]
+    if (l!=0) {
+      name=colnames(sil)[J]
+      sil[i,J]=paste0(rep(name, each = l), collapse = "+")
+    } else {sil[i,J]=NA}
+  }
+}
+
+#merge with + es( v and m = v+m)
 ne=ncol(sil)+1
 nline=length(unique(sil$shoot))
 nliner=length(unique(sil$rank_node))
@@ -177,12 +172,12 @@ for (i in 1:nline){
   }
 }
 
-#what is the possible combinations of buds in sylleptic shoots per node rank?
+#6: what is the possible combinations of buds per proleptic node rank?####
 bindsi=as.data.frame.matrix(table(sil$rank_node,sil$merge))
 head(bindsi,20)
 
-#graph4e
-png("4i.png",width=1200, height=900, res=150)# save plot
+#graph
+png("4f.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
 cols<-c("black", "blue","red","white","green","pink","yellow","gray","brown",brewer.pal(name="Spectral", n=11)[c(2:5,9:11)],brewer.pal(name="Dark2", n = 6))
 x<-barplot(t(bindsi[,1:22]),col = cols,main="combination of buds in sylleptic  shoots", xlab= "Rank nodes of parental", ylab="# of observation")
@@ -192,8 +187,8 @@ dev.off()
 mergsi=as.data.frame.matrix(prop.table(table(sil$rank_node,sil$merge), margin=1)*100)
 head(mergsi,20)
 
-#graph4f
-png("4l.png",width=1200, height=900, res=150)# save plot
+#graph
+png("4g.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
 cols<-c("black", "blue","red","white","green","pink","yellow","gray","brown",brewer.pal(name="Spectral", n=11)[c(2:5,9:11)],brewer.pal(name="Dark2", n = 6))
 x<-barplot(t(mergsi[,1:22]),col = cols,main="combination of buds in sylleptic  shoots", xlab= "Rank nodes of parental", ylab="% of observation", ylim=c(0,100))

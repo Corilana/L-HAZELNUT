@@ -1,5 +1,6 @@
-setwd("C:/Users/franc/Google Drive/PhD/Deruta/R/auto/Lateral")
 #EXPLORATORY ANALYSIS
+wd="C:/Users/franc/Google Drive/PhD/Deruta/"
+setwd(paste0(wd,"R/auto/Lateral/exploratory/"))
 
 #importiamo la liberia
 library(dplyr)
@@ -7,89 +8,137 @@ library(tibble)
 library(RColorBrewer)
 library(corrplot)
 library(rstatix)
+library(gridExtra)
 
 #shot level
-ann=read.csv("C:/Users/franc/Google Drive/PhD/Deruta/DF/auto/shoot_level_develop_lateralbuds.csv")
+ann=read.csv(paste0(wd, "DF/auto/shoot_level_develop_lateralbuds.csv"))
 #bud level
-lat=read.csv("C:/Users/franc/Google Drive/PhD/Deruta/DF/auto/mtp use/bud_level_LATERALS.csv")
+lat=read.csv(paste0(wd, "DF/auto/mtp use/bud_level_LATERALS.csv"))
 lat <- dplyr::mutate(lat, class = factor(class,levels = c("Sh", "Me", "Lo", "VLo")))
 lat <- dplyr::mutate(lat, length.newshoots = factor(length.newshoots,levels = c("Sh", "Me", "Lo", "VLo")))
 
-#how many parentals having at least 1 lateral bud?
-length(unique(lat$shoot))# 103
-#how many of them have at least 1 lateral child? 
-length(unique(lat[lat$new_shoots==1,4]))# 99
-#which was the length class of parentals? 
-table(unique(lat[lat$new_shoots==1,3:4])[1]) #28LO, 25Me, 21Sh, 25VLo
-#what is the length class of new shoots?
-table(lat[lat$new_shoots==1,c(3:4,18)][3])# 3Lo, 63Me, 818Sh
-#how many new shoots from sylleptic and how many from proleptic?
-table(lat[lat$new_shoots==1,c(3:4,16)][3])[2]#303 from buds in Sylleptic 
-table(lat[lat$new_shoots==1,c(3:4,16)][3])[1]#582 Proleptic
-#how many lateral buds in sylleptic and how many in proleptic?
-table(lat[16])#751 in Sylleptic an 822 in Proleptic
-#how many M in sylleptic and how many in proleptic
-msyl=table(lat[lat$fate=="M",16])[2]#250 in Syl and 385 in Prol
-mpro=table(lat[lat$fate=="M",16])[1]
-#how many V in sylleptic and how many in proleptic
-vsyl=table(lat[lat$fate=="V",16])[2]#272 in Syl and 313 in Prol
-vpro=table(lat[lat$fate=="V",16])[1]
-vm_syl=msyl+vsyl
-vm_pro=mpro+vpro
-#how many new shoots from M in sylleptic or proleptic
-new_m_syl=table(lat[lat$new_shoots==1&lat$fate=="M",16])[2]#117
-new_m_pro=table(lat[lat$new_shoots==1&lat$fate=="M",16])[1]#335
-#how many new shoots from V in sylleptic or proleptic
-new_v_syl=table(lat[lat$new_shoots==1&lat$fate=="V",16])[2]#165
-new_v_pro=table(lat[lat$new_shoots==1&lat$fate=="V",16])[1]#223
+#general analysis of the lateral dataframes at BUD scale
+s=grep("^shoot$",colnames(lat))
+c=grep("^class$",colnames(lat))
+lnew=grep("newshoots$",colnames(lat))
+f=grep("fate$",colnames(lat))
+p=grep("from_$",colnames(lat))
 
-new_syl=new_m_syl+new_v_syl
-new_pro=new_m_pro+new_v_pro
-#% of M or V buds developed in sylleptic and in proleptic
-ef_syl=(new_syl/vm_syl)*100#54%
-ef_pro=(new_pro/vm_pro)*100#80%
 
-#how many errors? developed from B or C?
-new_c=length(lat[lat$new_shoots==1&lat$fate=="C",1])
-new_b=length(lat[lat$new_shoots==1&lat$fate=="B",1])
-tot_newshoot=length(lat[lat$new_shoots==1,1])
+TAB1=cbind(as.data.frame(table(unique(lat[c:s])[1])),#class of parental
+           (as.data.frame(table(lat[c(c,f)][1]))[2]),##buds in parentals
+           (as.data.frame(table(unique(lat[lat$new_shoots!=0,c:s])[1]))[2]),#class of parentals with children?
+           (as.data.frame(table(lat[lat$new_shoots!=0,c(c,f)][1]))[2]),#buds in each class of parent
+           as.data.frame(table(lat[lat$new_shoots!=0,c(c:s,lnew)][3]))#class of children?
+)
+colnames(TAB1)=c("Class","parental_freq","tot_lat_buds","parental_with_children_freq","tot_buds_in_parent_with_child","child_class","children_freq")
+TAB1["Sum",c(2:5,7)]=colSums(TAB1[c(2:5,7)])
 
-er=((new_b+new_c)/tot_newshoot)*100# 5.08%
+#write pdf with the table
+pdf("class_frequences.pdf",height = 4,width = 13 )
+grid.table(TAB1)
+dev.off()
 
+TAB2=cbind(as.data.frame(c("proleptic","sylleptic")),
+          (as.data.frame(table(lat[lat$new_shoots!=0,c(c:s,p)][3]))[2]),#CHILDS from sylleptic(2) or proleptic(1) 
+          (as.data.frame(table(lat[lat$fate=="M",p]))[2]),#M from sylleptic(2) or proleptic(1)
+          (as.data.frame(table(lat[lat$fate=="V",p]))[2]),#V from sylleptic(2) or proleptic(1)
+          (as.data.frame(table(lat[lat$new_shoots!=0&lat$fate=="M",p]))[2]),#childs from M
+          (as.data.frame(table(lat[lat$new_shoots!=0&lat$fate=="V",p]))[2]),#childs from V
+          (as.data.frame(table(lat[lat$new_shoots!=0&lat$fate=="C",p]))[2]),#childs from C
+          (as.data.frame(table(lat[lat$new_shoots!=0&lat$fate=="B",p]))[2])#childs from B
+          )
+colnames(TAB2)=c("Shoot_type",
+                 "#child","#M_buds","#V_buds",
+                 "childs_from_M","childs_from_V",
+                 "childs_from_C","childs_from_B")
+C=grep("C", colnames(TAB2))
+B=grep("B", colnames(TAB2))
+if(TAB2[TAB2$Shoot_type=="proleptic",C]!=0){TAB2[TAB2$Shoot_type=="proleptic",C]=0}#there are no catkins in proleptic
+if(TAB2[TAB2$Shoot_type=="sylleptic",B]!=0){TAB2[TAB2$Shoot_type=="sylleptic",B]=0}#there are no blinds in sylleptic
+TAB2["Sum",2:8]=colSums(TAB2[2:8])
+TAB2$mv=rowSums(TAB2[3:4])
+TAB2$childs_mv=rowSums(TAB2[5:6])
+TAB2$ef=round(TAB2$childs_mv/TAB2$mv, digits = 2)
+TAB2$err[3]=round(sum(TAB2[3,7:8])/TAB2[3,2], digits = 2)
+
+#write pdf with the table
+pdf("type_shoots.pdf", height = 5,width = 12)
+grid.table(TAB2)
+dev.off()
+
+#childs from PROLEPTIC
 #what is the relationship between length of parents (PROLEPTIC) and length of lateral?
-PRO=lat[lat$is_in_sylleptic=="NO",]#subset for proleptic
-table(unique(PRO[PRO$new_shoots==1,3:4])[1]) #28LO, 22Me, 17Sh, 25VLo
-q1=table(PRO$class,PRO$length.newshoots)
+PRO=lat[lat$from_=="PROL",]#subset for buds in proleptic shoots
+f=grep("fate", colnames(PRO))
+TAB_P=as.data.frame(table(unique(PRO[PRO$new_shoots!=0,c:s])[1]))#class_proleptic
+colnames(TAB_P)=c("proleptic_class", "parental_frequence")
 
-#how many lateral buds IN proleptic?
-sum(PRO$tot_buds)#1081_gemme laterali
+TAB_P$MV=NA
+TAB_P$TOT_BUDS=NA
 
-#how many buds per parental class length?
-tot=grep("tot_buds", colnames(PRO))
-sh=sum(PRO[PRO$class=="Sh",tot])#79 totbuds in parental sh
-me=sum(PRO[PRO$class=="Me",tot])#132 totbuds in parental me
-lo=sum(PRO[PRO$class=="Lo",tot])#330 totbuds in parental lo
-vlo=sum(PRO[PRO$class=="VLo",tot])#540 totbuds in parental VLo
+for (i in 1:4) {
+  I=TAB_P$proleptic_class[i]
+  tt=length(PRO[PRO$class==I,tot])#totbuds in parental
+  mv=length(grep(paste0("V","|","M"),PRO[PRO$class==I,tot]))#mv in parental
+  TAB_P[i,3]=mv
+  TAB_P[TAB_P$proleptic_class==I,4]=tt
+}
+          
+TAB_P["Sums",2:4]=colSums(TAB_P[2:4])
 
-#Question: how many of those were vegetative and mixed?(only one that can burst)
-v=grep("^v$", colnames(PRO))
-m=grep("^m$", colnames(PRO))
-sh_mv=sum(PRO[PRO$class=="Sh",v:m])#22 budsM+ budsV in parental SH
-me_mv=sum(PRO[PRO$class=="Me",v:m])#20 budsM+ budsV in parental me
-lo_mv=sum(PRO[PRO$class=="Lo",v:m])#63 budsM+ budsV in parental lo
-vlo_mv=sum(PRO[PRO$class=="VLo",v:m])#154 budsM+ budsV in parental VLo
+#parent length ~ child length
+par_child=as.data.frame.matrix(table(PRO$class,PRO$length.newshoots))
+colnames(par_child)=c("child_Sh", "child_Me", "Child_Lo", "Child_VLo")#nomi colonne
+rownames(par_child)=c("parent_Sh", "parent_Me", "parent_Lo", "parent_VLo")#nomi righe
+par_child=add_column(par_child, freq_class=TAB_P[1:4,2], .before = "child_Sh")#numero parents per ogni categoria
+par_child=add_column(par_child, tot_parental_buds=TAB_P[1:4,4], .before = "child_Sh")#numero gemme laterali per ogni categoria
+par_child=add_column(par_child, parental_M_V=TAB_P[1:4,3], .before = "child_Sh")#numero gemme M+V per ogni categoria
+par_child$sum_child=rowSums(par_child[4:7])#numero totale laterali per ogni categoria di lunghezza
+par_child["Sums",]=colSums(par_child)#numero totale laterali
 
-#Question: quanti children delle differenti classi di lunghezza, per ogni classe di parentale????
-parlen.chillen=as.data.frame.matrix(q1)
-colnames(parlen.chillen)=c("child_Sh", "child_Me", "Child_Lo", "Child_VLo")#nomi colonne
-rownames(parlen.chillen)=c("parent_Sh", "parent_Me", "parent_Lo", "parent_VLo")#nomi righe
-parlen.chillen=add_column(parlen.chillen, parental_lat_shoot=c(17,22,28,25), .before = "child_Sh")#numero parents per ogni categoria
-parlen.chillen=add_column(parlen.chillen, tot_parental_buds=c(sh,me,lo,vlo), .before = "child_Sh")#numero gemme laterali per ogni categoria
-parlen.chillen=add_column(parlen.chillen, parental_M_V=c(sh_mv,me_mv,lo_mv,vlo_mv), .before = "child_Sh")#numero gemme M+V per ogni categoria
-parlen.chillen$sum_child=rowSums(parlen.chillen[4:7])#numero totale laterali per ogni categoria di lunghezza
-parlen.chillen["Sums",]=colSums(parlen.chillen)#numero totale laterali
-#quali sono le proporzioni PER OGNI CLASSE DI LUNGHEZZA PARENTALE?? (#child/#parentinthatlength)
-prop=as.data.frame.matrix(round(prop.table(q1, margin=1)*100, digit=2))
+#write pdf with the table
+pdf("childs_from_proleptic.pdf", height = 5,width = 12)
+grid.table(par_child)
+dev.off()
+
+#childs from SYLLEPTIC
+#what is the relationship between length of parents (SYLLEPTIC) and length of lateral?
+SYL=lat[lat$from_=="SYL",]#subset for buds in sylleptic shoots
+f=grep("fate", colnames(SYL))
+TAB_P=as.data.frame(table(unique(SYL[SYL$new_shoots!=0,c:s])[1]))#class_sylleptic
+colnames(TAB_P)=c("sylleptic_class", "parental_frequence")
+
+TAB_P$MV=NA
+TAB_P$TOT_BUDS=NA
+
+for (i in 1:4) {
+  I=TAB_P$sylleptic_class[i]
+  tt=length(SYL[SYL$class==I,tot])#totbuds in parental
+  mv=length(grep(paste0("V","|","M"),SYL[SYL$class==I,tot]))#mv in parental
+  TAB_P[i,3]=mv
+  TAB_P[TAB_P$sylleptic_class==I,4]=tt
+}
+
+TAB_P["Sums",2:4]=colSums(TAB_P[2:4])
+
+#parent length ~ child length
+par_child=as.data.frame.matrix(table(SYL$class,SYL$length.newshoots))
+colnames(par_child)=c("child_Sh", "child_Me", "Child_Lo", "Child_VLo")#nomi colonne
+rownames(par_child)=c("parent_Sh", "parent_Me", "parent_Lo", "parent_VLo")#nomi righe
+par_child=add_column(par_child, freq_class=TAB_P[1:4,2], .before = "child_Sh")#numero parents per ogni categoria
+par_child=add_column(par_child, tot_parental_buds=TAB_P[1:4,4], .before = "child_Sh")#numero gemme laterali per ogni categoria
+par_child=add_column(par_child, parental_M_V=TAB_P[1:4,3], .before = "child_Sh")#numero gemme M+V per ogni categoria
+par_child$sum_child=rowSums(par_child[4:7])#numero totale laterali per ogni categoria di lunghezza
+par_child["Sums",]=colSums(par_child)#numero totale laterali
+
+#write pdf with the table
+pdf("childs_from_sylleptic.pdf", height = 5,width = 12)
+grid.table(par_child)
+dev.off()
+
+#CLASS FREQ  (#child/#parentinthatlength)
+prop=as.data.frame.matrix(round(prop.table(table(PRO$class,PRO$length.newshoots), margin=1)*100, digit=2))
 prop
 
 #graph1
@@ -103,4 +152,4 @@ dev.off()
 
 #has the medium lateral different proportions according to parental length?
 chisq.test(prop[,2])#i rami medi nonsono uguali per tutte le lunghezze
-pairwise_chisq_gof_test(prop[,2])#ci sono più medi nei VLO e meno nei ME
+a=pairwise_chisq_gof_test(prop[,2])#ci sono più medi nei VLO e meno nei ME
