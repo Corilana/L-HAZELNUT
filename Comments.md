@@ -6,6 +6,6 @@
  * FG: (4/11/2021) I trained with N-APPLE_seq_hsmc.py code. I understood the logic behind but I still have some questions regarding some lines of the code. I put them into a Power point presentation that can  may be shared in the next meeting
  * JB (18/01/2022): extracting the list of buds and fates - maybe not necessary to make separate files for apical and lateral. It is potentially easier to make one file with a column "Apical vs. lateral". 
  * EC (18/01/2022): Should we include the bud itself when considering the total number of V, M or C at a given node?
- * JB (09/03/2022): meaning of glm(cbind(m,v) ~ ..., family=binomial)?
+ * JB (09/03/2022): meaning of glm(cbind(m,v) ~ ..., family=binomial): modelling probability to have either a m or a v...
  How to handle variables that had some significant effect when considered as the only predictor, but could become non-significant when considered with another predictor?
  
