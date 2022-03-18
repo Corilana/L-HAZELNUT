@@ -8,4 +8,5 @@
  * EC (18/01/2022): Should we include the bud itself when considering the total number of V, M or C at a given node?
  * JB (09/03/2022): meaning of glm(cbind(m,v) ~ ..., family=binomial): modelling probability to have either a m or a v...
  How to handle variables that had some significant effect when considered as the only predictor, but could become non-significant when considered with another predictor?
- 
+  * JB (18/03/2022): why not to include the total number of buds (or shoots) when modelling the proportions of V/M?
+  Please remind what "new_shoots" are when comparing models to predict them (shoots of branching order 2 bursting or not?)
