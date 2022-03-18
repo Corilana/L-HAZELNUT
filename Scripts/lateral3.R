@@ -23,7 +23,7 @@ met <- dplyr::mutate(met, class = factor(class,levels = c("Sh", "Me", "Lo", "VLo
 proleptic=met#copy df metamer level
 
 sh=grep("^shoot$", colnames(proleptic))
-sy=grep("^syl", colnames(proleptic))
+sy=grep("^shoot_type", colnames(proleptic))
 v=grep("^v$", colnames(proleptic))
 m=grep("^m$", colnames(proleptic))
 b=grep("^b$", colnames(proleptic))
@@ -45,7 +45,7 @@ for (q in 1:nline) {
   Q=unique(sort(proleptic$rank_node))[q]
   TAB_PRO[paste0(Q),"rank_node"]=Q
   TAB_PRO[paste0(Q),"shoots_with_tank"]=length(proleptic[proleptic$rank_node==Q,sh])
-  TAB_PRO[paste0(Q),"sylleptic"]=sum(proleptic[proleptic$rank_node==Q,sy])#sylleptic for each parental node?
+  TAB_PRO[paste0(Q),"sylleptic"]=table(proleptic$rank_node, proleptic$shoot_type)[Q,2]#sylleptic for each parental node?
   TAB_PRO[paste0(Q),"v"]=sum(proleptic[proleptic$rank_node==Q,v])#v for each parental node?
   TAB_PRO[paste0(Q),"m"]=sum(proleptic[proleptic$rank_node==Q,m])#m for each parental node?
   TAB_PRO[paste0(Q),"b"]=sum(proleptic[proleptic$rank_node==Q,b])#b for each parental node?

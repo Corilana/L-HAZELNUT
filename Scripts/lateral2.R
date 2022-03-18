@@ -27,7 +27,7 @@ for (q in 1:nrow(proleptic)) {
 }
 colnames(proleptic)[c]="sylleptic"#CHANGE THE name of COLUMN "C" WITH "SYLLEPTIC"
 
-sy=grep("^syl", colnames(proleptic))
+sy=grep("^shoot_type", colnames(proleptic))
 v=grep("^v$", colnames(proleptic))
 m=grep("^m$", colnames(proleptic))
 b=grep("^b$", colnames(proleptic))
@@ -41,7 +41,7 @@ TAB_PRO=met[0,0]#empty df
 nline=length(unique(sort(proleptic$class)))
 for (q in 1:nline) {
   Q=unique(sort(proleptic$class))[q]
-  TAB_PRO[paste0(Q),"sylleptic"]=sum(proleptic[proleptic$class==Q,sy])#how many sylleptic for each parental class?
+  TAB_PRO[paste0(Q),"sylleptic"]=table(proleptic$class, proleptic$shoot_type)[q,2]#how many sylleptic for each parental class?
   TAB_PRO[paste0(Q),"v"]=sum(proleptic[proleptic$class==Q,v])#how many v for each parental class?
   TAB_PRO[paste0(Q),"m"]=sum(proleptic[proleptic$class==Q,m])#how many m for each parental class?
   TAB_PRO[paste0(Q),"b"]=sum(proleptic[proleptic$class==Q,b])#how many b for each parental class?
@@ -80,7 +80,7 @@ png("2a.png",width=1200, height=900, res=150)# save plot
 cols<-brewer.pal(n=4,name="Set2")
 x=barplot(q1new[1:4],col = cols, names.arg = colnames(q1new), main="frequence lateral buds/sylleptic in proleptic parental", xlab = "buds/sylleptic", ylab="%", ylim = c(0,100))
 text(x,q1new+3 , paste0(round(q1new, digit=2),"%"), cex = 1)
-text(x,q1new+10, c("ab","ab","a","b"), cex = 1)
+text(x,q1new+10, c("b","a","a","b"), cex = 1)
 dev.off()
 
 chisq.test(q1new[1:4])
@@ -129,7 +129,7 @@ q
 png("2c.png",width=1200, height=900, res=150)# save plot
 cols<-brewer.pal(n=4,name="Set2")[c(2,3)]
 x=barplot(q[1:2],col = cols, names.arg = colnames(q), main="frequence buds in sylleptic", xlab = "buds", ylab="%", ylim = c(0,100))
-text(x,q+3 , paste0(round(q, digit=2),"%"), cex = 1)
+text(x,q[1:2]+3 , paste0(round(q[1:2], digit=2),"%"), cex = 1)
 dev.off()
 
 #3_ % buds in sylleptic shoots####
@@ -176,7 +176,7 @@ dev.off()
 znew=t(as.matrix(as.data.frame(TAB_SYL[c(1:4)][1:4,])))#df dei soli numeri
 znew
 
-png("2d.png",width=1200, height=900, res=150)# save plot
+png("2e.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 6))
 cols<-brewer.pal(n=length(colnames(znew)),name="Set2")
 x<-barplot(znew, beside=T,col = cols, main="lateral buds", xlab="parental proleptic class length", ylab="lateral buds(#)")
@@ -184,4 +184,4 @@ legend("topright",inset=c(-0.13,0),xpd = TRUE, legend = rownames(qnew),fill = co
 dev.off()
 
 #how many lateral buds develop into shoots?
-round((sum(met$number_new_shoots)/(sum(met[10:11]))*100), digit=2)#72.54%gemme germogliate(numero germogli laterali/numero totali gemme laterali M+V)
+round((sum(met$number_new_shoots)/(sum(met[11:12]))*100), digit=2)#72.46%gemme germogliate(numero germogli laterali/numero totali gemme laterali M+V)
