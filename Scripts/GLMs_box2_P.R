@@ -1,408 +1,478 @@
-setwd("C:/Users/franc/Google Drive/PhD/Deruta/R/auto/Lateral")
+#GLM: Existence of B (0,1)? 
+#GLM: #how many V and M buds in proleptic?
+wd="C:/Users/franc/Google Drive/PhD/Deruta/"
+setwd(paste0(wd, "R/auto/Lateral/glm"))
+
 library(stats)
 library(dplyr)
 library(RColorBrewer)
+library(plotrix)
+library(plyr)
 
-met=read.csv("C:/Users/franc/Google Drive/PhD/Deruta/DF/auto/mtp use/met_level_develop_lateralbuds.csv")
-met[met$shoot_type=="SYLLEPTIC",20]=1#sylleptic is now 1
-met[met$shoot_type=="PROLEPTIC",20]=0#proleptic is now 0
-met$shoot_type=as.numeric(met$shoot_type)
+#metamer level
+met=read.csv(paste0(wd, "DF/auto/mtp use/met_level_develop_lateralbuds.csv"))
+s=grep("shoot_type",colnames(met))#store the column with the sylleptic info
+met[met$shoot_type=="SYLLEPTIC",s]=1#1 is sylleptic
+met[met$shoot_type=="PROLEPTIC",s]=0#0 is proleptic
+met$shoot_type=as.numeric(met$shoot_type)#transform in numeric the info of sylleptic/proleptic
 
+#df with proleptic
 PROL_met_scale=met[met$shoot_type==0,]
 
 #change columns names to not make confusion
-colnames(PROL_met_scale)[c(2,6,7,8,15,17)]=c("parent_length_cm",
-                                            "parent_length_nodes",
-                                            "parent_rank_node",
+colnames(PROL_met_scale)[c(2,6,7,8,16,18)]=c("length_cm",
+                                            "length_nodes",
+                                            "rank_node",
                                             "distance",
                                             "tot_buds",
                                             "m_v")
-#BOX.2.0 existence(0.1)
-#1:b~length?####
-glm_box1=glm(b~parent_length_cm,family = "binomial",data = PROL_met_scale)
-summary(glm_box1)#yes
+PROL_met_scale$m_v=PROL_met_scale$m_v-PROL_met_scale$b#rimuoviamo blind buds from the counting of m+v
 
-#df %B~length
-prop=as.data.frame.matrix(table(PROL_met_scale$parent_length_cm,PROL_met_scale$b))
-prop$ratio=round((prop$`1`)/(rowSums(prop[1:2])), digit=2)
-colnames(prop)[1:2]=c("no_blind buds","si_bind buds")
-prop$length=as.numeric(rownames(prop))
-head(prop)
+#parameters: length(cm), length(node), rank_node, distance
+#length_cm~length_nodes####
+#i will delete parent_length nodes because they are highly related
+glm_box1=nls(length_nodes~a*(length_cm^b),data = PROL_met_scale,start = c(a=1, b=0.5))
+summary(glm_box1)
 
-#df: predict~length
-pred=as.data.frame.matrix(cbind(PROL_met_scale$parent_length_cm,predict(glm_box1, type="response")))
-pred=unique(pred)
-pred=pred[with(pred, order(V1)), ]
-if (all.equal(pred$V1,prop$length)){prop$predict=pred$V2}
+df=data.frame(length_cm=seq(1,max(PROL_met_scale$length_cm),by=1))
+df$pred=predict(glm_box1,
+                newdata = df,
+                type="response")
 
-#histogram
-png("box2_1p.png",width=1200, height=900, res=150)# save plot
+png("2a.png",width=1200, height=900, res=150)# save plot
 cols<-brewer.pal(n=4,name="Set2")[3:4]
-dfbar<-barplot(prop$ratio,
-               col = cols[1],
-               main="%blind nodes (#b/tot_nodes) vs parent length(cm)",
-               xlab= "parent length(cm)",
-               ylab="%blind nodes",
-               ylim=c(0,1),
-               names.arg = prop$length)
-lines(x=dfbar,y=prop$predict,lwd=5, col=cols[2])
+with(PROL_met_scale, plot(PROL_met_scale$length_nodes~PROL_met_scale$length_cm,
+                          pch=19,col = cols[1],
+                          main="length(cm) vs length(node)",
+                          xlab= "length(cm)",
+                          ylab="length(node)"),)
+with(df,lines(df$pred~df$length_cm,col=cols[2], lwd=5))
 legend("top",
        horiz=T,
        xpd = TRUE, legend = c("real", "predicted"),fill = cols, cex=0.6)
-
 dev.off()
 
-#permutations
-null_1=glm(b~1,family = "binomial",data = PROL_met_scale)
+#1:b~length+rank+distance+length?####
+glm_box1=glm(b~length_cm+rank_node+distance+length_nodes,family = "binomial",data = PROL_met_scale)
+summary(glm_box1)#yes
+
+#permut_ distance
+null_1=glm(b~length_cm+rank_node+length_nodes+1,family = "binomial",data = PROL_met_scale)
 summary(null_1)
-dif=null_1$aic-glm_box1$aic
+dif=glm_box1$aic-null_1$aic
 met_nul=PROL_met_scale
 
 df=data.frame(matrix(nrow=0, ncol=0))
-for (i in 1:100) {
-  met_nul$parent_length_cm=sample(PROL_met_scale$parent_length_cm)
-  perm=glm(b~parent_length_cm,family = "binomial",data = met_nul)
-  a=null_1$aic-perm$aic
-  b=a>dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
+for (i in 1:10000) {
+  met_nul$distance=sample(PROL_met_scale$distance)
+  perm=glm(b~length_cm+rank_node+distance+length_nodes,family = "binomial",data = met_nul)
+  a=perm$aic-null_1$aic
+  b=a<dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
   r=cbind(i,a, b)
   df=rbind(df,r)
 }
 
 better_perm=length(which(df$b==1))#times better perm!!!
 
-#2: b~length?####
-glm_box1=glm(b~parent_length_nodes,family = "binomial",data = PROL_met_scale)
+#2:b~length+rank+distance?####
+glm_box1=glm(b~length_cm+rank_node+distance,family = "binomial",data = PROL_met_scale)
 summary(glm_box1)#yes
-
-#df: %B~length
-prop=as.data.frame.matrix(table(PROL_met_scale$parent_length_nodes,PROL_met_scale$b))
-prop$ratio=round((prop$`1`)/(rowSums(prop[1:2])), digit=2)
-colnames(prop)[1:2]=c("no_blind buds","si_bind buds")
-prop$length=as.numeric(rownames(prop))
-head(prop)
-
-#df:predict~length
-pred=as.data.frame.matrix(cbind(PROL_met_scale$parent_length_nodes,predict(glm_box1, type="response")))
-pred=unique(pred)
-pred=pred[with(pred, order(V1)), ]
-if (all.equal(pred$V1,prop$length)){prop$predict=pred$V2}
-
-#histogram
-png("box2_2p.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=4,name="Set2")[3:4]
-dfbar<-barplot(prop$ratio,
-               col = cols[1],
-               main="%blind nodes (#b/tot_nodes) vs parent length(nodes)",
-               xlab= "parent length(nodes)",
-               ylab="%blind nodes",
-               ylim=c(0,1),
-               names.arg = prop$length)
-lines(x=dfbar,y=prop$predict,lwd=5, col=cols[2])
-legend("top",
-       horiz=T,
-       xpd = TRUE, legend = c("real", "predicted"),fill = cols, cex=0.6)
-
-dev.off()
-
-#permutations
-null_1=glm(b~1,family = "binomial",data = PROL_met_scale)
-summary(null_1)
-dif=null_1$aic-glm_box1$aic
-met_nul=PROL_met_scale
-
-df=data.frame(matrix(nrow=0, ncol=0))
-for (i in 1:100) {
-  met_nul$parent_length_nodes=sample(PROL_met_scale$parent_length_nodes)
-  perm=glm(b~parent_length_nodes,family = "binomial",data = met_nul)
-  a=null_1$aic-perm$aic
-  b=a>dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
-  r=cbind(i,a, b)
-  df=rbind(df,r)
-}
-
-better_perm=length(which(df$b==1))#times better perm!!!
 
 #3:b~length+rank?####
-glm_box1=glm(b~parent_length_nodes+parent_rank_node,family = "binomial",data =PROL_met_scale)
+glm_box1=glm(b~length_cm+rank_node,family = "binomial",data = PROL_met_scale)
 summary(glm_box1)#yes
 
-#4:b~length+rank?####
-glm_box1=glm(b~parent_rank_node,family = "binomial",data =PROL_met_scale)
+#4:b~rank?####
+glm_box1=glm(b~rank_node,family = "binomial",data = PROL_met_scale)
 summary(glm_box1)#yes
 
-#df: %b~rank
-prop=as.data.frame.matrix(table(PROL_met_scale$parent_rank_node,PROL_met_scale$b))
+#permutations_rank_node
+null_1=glm(b~1,family = "binomial",data = PROL_met_scale)
+summary(null_1)
+dif=glm_box1$aic-null_1$aic
+met_nul=PROL_met_scale
+
+df=data.frame(matrix(nrow=0, ncol=0))
+for (i in 1:10000) {
+  met_nul$rank_node=sample(PROL_met_scale$rank_node)
+  perm=glm(b~rank_node,family = "binomial",data = met_nul)
+  a=perm$aic-null_1$aic
+  b=a<dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
+  r=cbind(i,a, b)
+  df=rbind(df,r)
+}
+
+better_perm=length(which(df$b==1))#times better perm!!!
+
+# df b~rank
+prop=as.data.frame.matrix(table(PROL_met_scale$rank_node,PROL_met_scale$b))
 prop$ratio=round((prop$`1`)/(rowSums(prop[1:2])), digit=2)
-colnames(prop)[1:2]=c("no_blind buds","si_bind buds")
+colnames(prop)[1:2]=c("no_b","si_b")
 prop$rank=as.numeric(rownames(prop))
 head(prop)
 
-#df:predict~length
-pred=as.data.frame.matrix(cbind(PROL_met_scale$parent_rank_node,predict(glm_box1, type="response")))
-pred=unique(pred)
-pred=pred[with(pred, order(V1)), ]
-if (all.equal(pred$V1,prop$rank)){prop$predict=pred$V2}
+#df: predict~v
+prop$pred=predict(glm_box1,
+                  newdata = data.frame(rank_node=seq(1, max(prop$rank), length.out = length(prop$rank))),
+                  type="response")
 
 #histogram
-png("box2_3p.png",width=1200, height=900, res=150)# save plot
+png("2a_p.png",width=1200, height=900, res=150)# save plot
 cols<-brewer.pal(n=4,name="Set2")[3:4]
-dfbar<-barplot(prop$ratio,
-               col = cols[1],
-               main="%blind nodes (#b/tot_nodes) vs parent rank",
-               xlab= "parent rank",
-               ylab="%blind nodes",
-               ylim=c(0,1),
-               names.arg = prop$rank)
-lines(x=dfbar,y=prop$predict,lwd=5, col=cols[2])
+with(prop, plot(prop$ratio~prop$rank,
+                col = cols[1],
+                main="%b (#b/tot_nodes) vs rank node",
+                xlab= "rank node",
+                ylab="%b",
+                ylim=c(0,1),
+                type="h",
+                lwd=5))
+with(prop, lines(prop$pred~prop$rank,lwd=5, col=cols[2]))
 legend("top",
        horiz=T,
        xpd = TRUE, legend = c("real", "predicted"),fill = cols, cex=0.6)
 dev.off()
 
-#permutations
-null_1=glm(b~1,family = "binomial",data = PROL_met_scale)
+
+#1: m+v buds ~ parent lenght(cm)+distance+ rank_node+length(node)?####
+glm_box1=glm(m_v~length_cm+distance+rank_node+length_nodes,family = "poisson",data = PROL_met_scale)
+summary(glm_box1)#yes
+
+#2: m+v buds ~ parent lenght(cm)+distance+ rank_node?####
+glm_box1=glm(m_v~length_cm+distance+rank_node,family = "poisson",data = PROL_met_scale)
+summary(glm_box1)#yes
+
+#permutations_length
+null_1=glm(m_v~distance+rank_node+1,family = "poisson",data = PROL_met_scale)
 summary(null_1)
-dif=null_1$aic-glm_box1$aic
+dif=glm_box1$aic-null_1$aic
 met_nul=PROL_met_scale
 
 df=data.frame(matrix(nrow=0, ncol=0))
-for (i in 1:100) {
-  met_nul$parent_rank_node=sample(PROL_met_scale$parent_rank_node)
-  perm=glm(b~parent_rank_node,family = "binomial",data = met_nul)
-  a=null_1$aic-perm$aic
-  b=a>dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
+for (i in 1:10000) {
+  met_nul$length_cm=sample(PROL_met_scale$length_cm)
+  perm=glm(m_v~length_cm+distance+rank_node,family = "poisson",data = met_nul)
+  a=perm$aic-null_1$aic
+  b=a<dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
   r=cbind(i,a, b)
   df=rbind(df,r)
 }
 
 better_perm=length(which(df$b==1))#times better perm!!!
 
+#permutations_distance
+null_1=glm(m_v~length_cm+rank_node+1,family = "poisson",data = PROL_met_scale)
+summary(null_1)
+dif=glm_box1$aic-null_1$aic
+met_nul=PROL_met_scale
 
-#BOX2
-PROL_met_scale$m_v=PROL_met_scale$m_v-PROL_met_scale$b#delete the blind nodes from the counting of total buds at that metamer
-
-#1_m+v buds ~ parent lenght (cm)?####
-glm_box1=glm(m_v~parent_length_cm,family = "poisson",data = PROL_met_scale)
-summary(glm_box1)#yes
-
-#df: #m_v~length
-prop=met[0,0]#empry df
-nline=length(unique(PROL_met_scale$parent_length_cm))
-mv=grep("^m_v", colnames(PROL_met_scale))
-for (i in 1:nline) {
-  p_length=unique(PROL_met_scale$parent_length_cm)[i]
-  MV=sum(PROL_met_scale[PROL_met_scale$parent_length_cm==p_length,mv])
-  prop=rbind(prop, cbind(p_length,MV))
+df=data.frame(matrix(nrow=0, ncol=0))
+for (i in 1:10000) {
+  met_nul$distance=sample(PROL_met_scale$distance)
+  perm=glm(m_v~length_cm+distance+rank_node,family = "poisson",data = met_nul)
+  a=perm$aic-null_1$aic
+  b=a<dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
+  r=cbind(i,a, b)
+  df=rbind(df,r)
 }
 
-prop=prop[with(prop, order(p_length)),]#order according to parenth length
+better_perm=length(which(df$b==1))#times better perm!!!
 
-#df: predicted~length
-pred=as.data.frame.matrix(cbind(PROL_met_scale$parent_length_cm,predict(glm_box1,type="response")))
-df=met[0,0]#empry df
-nline=length(unique(pred$V1))
+#we have to choose if weeping distance or rank node or length
+#rank
+nline=length(unique(sort(PROL_met_scale$rank_node)))
+mv=grep("m_v", colnames(PROL_met_scale))
+dt=met[0,0]
+
 for (i in 1:nline) {
-  p_length=unique(pred$V1)[i]
-  MV=sum(pred[pred$V1==p_length,2])
-  df=rbind(df, cbind(p_length,MV))
+  L=unique(sort(PROL_met_scale$rank_node))[i]
+  av=round(mean(PROL_met_scale[PROL_met_scale$rank_node==L,mv]), digits = 2)
+  n=length(PROL_met_scale[PROL_met_scale$rank_node==L,mv])
+  se=round(std.error(PROL_met_scale[PROL_met_scale$rank_node==L,mv]), digits=2)
+  if(n==1){
+    se=0
+    marg=0}
+  else{
+    t=qt(0.975,df=n-1)
+    #confidence interval = coef * se
+    marg=se*t
+  }
+  d=cbind(L,av,se, marg)
+  dt=rbind(dt,d)
 }
-pred=df
-pred=pred[with(pred, order(p_length)), ]
-if (all.equal(pred$p_length,prop$p_length)){prop$predict=pred$MV}
 
 #histogram
-png("box2_4p.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=4,name="Set2")[c(3,4)]
-dfbar<-barplot(prop$MV,
-               names.arg = prop$p_length,
-               col = cols[1],
-               main="# of m+v~parent length(cm)",
-               xlab= "parent length(cm)", 
-               ylab="# m+v", 
-               ylim=c(0,max(prop$MV)+10))
-lines(x=dfbar,y=prop$predict,lwd=5, col=cols[2])
+png("2b_p.png",width=1200, height=900, res=150)# save plot
+cols<-brewer.pal(n=4,name="Set2")[3:4]
+with(dt,plot(dt$av~dt$L,
+                col = cols[1],
+                main="average #m+v vs rank node",
+                xlab= "rank node",
+                ylab="average #m+v",
+                pch=19))
+with(arrows(x0 = dt$L,                           # Add error bars
+            y0 = dt$av + dt$se,
+            y1 = dt$av - dt$se,
+            angle = 90,
+            code = 3,
+            length = 0.05,
+            col=cols[1]))
+dev.off()
+
+#distance
+nline=length(unique(sort(PROL_met_scale$distance)))
+mv=grep("m_v", colnames(PROL_met_scale))
+dt=met[0,0]
+
+for (i in 1:nline) {
+  L=unique(sort(PROL_met_scale$distance))[i]
+  av=round(mean(PROL_met_scale[PROL_met_scale$distance==L,mv]), digits = 2)
+  n=length(PROL_met_scale[PROL_met_scale$distance==L,mv])
+  se=round(std.error(PROL_met_scale[PROL_met_scale$distance==L,mv]), digits=2)
+  if(n==1){
+    se=0
+    marg=0}
+  else{
+    t=qt(0.975,df=n-1)
+    #confidence interval = coef * se
+    marg=se*t
+  }
+  d=cbind(L,av,se, marg)
+  dt=rbind(dt,d)
+}
+
+#histogram
+png("2c_p.png",width=1200, height=900, res=150)# save plot
+cols<-brewer.pal(n=4,name="Set2")[3:4]
+with(dt,plot(dt$av~dt$L,
+             col = cols[1],
+             main="average #m+v vs distance",
+             xlab= "distance",
+             ylab="average #m+v",
+             pch=19))
+with(arrows(x0 = dt$L,                           # Add error bars
+            y0 = dt$av + dt$se,
+            y1 = dt$av - dt$se,
+            angle = 90,
+            code = 3,
+            length = 0.05,
+            col=cols[1]))
+dev.off()
+
+#length
+nline=length(unique(sort(PROL_met_scale$length_cm)))
+mv=grep("m_v", colnames(PROL_met_scale))
+dt=met[0,0]
+
+for (i in 1:nline) {
+  L=unique(sort(PROL_met_scale$length_cm))[i]
+  av=round(mean(PROL_met_scale[PROL_met_scale$length_cm==L,mv]), digits = 2)
+  n=length(PROL_met_scale[PROL_met_scale$length_cm==L,mv])
+  se=round(std.error(PROL_met_scale[PROL_met_scale$length_cm==L,mv]), digits=2)
+  if(n==1){
+    se=0
+    marg=0}
+  else{
+    t=qt(0.975,df=n-1)
+    #confidence interval = coef * se
+    marg=se*t
+  }
+  d=cbind(L,av,se, marg)
+  dt=rbind(dt,d)
+}
+
+#histogram
+png("2d_p.png",width=1200, height=900, res=150)# save plot
+cols<-brewer.pal(n=4,name="Set2")[3:4]
+with(dt,plot(dt$av~dt$L,
+             col = cols[1],
+             main="average #m+v vs length_cm",
+             xlab= "length_cm",
+             ylab="average #m+v",
+             pch=19))
+with(arrows(x0 = dt$L,                           # Add error bars
+            y0 = dt$av + dt$se,
+            y1 = dt$av - dt$se,
+            angle = 90,
+            code = 3,
+            length = 0.05,
+            col=cols[1]))
+dev.off()
+
+#3: m+v buds ~ rank_node?####
+glm_box1=glm(m_v~rank_node,family = "poisson",data = PROL_met_scale)
+summary(glm_box1)#yes
+
+#rank
+nline=length(unique(sort(PROL_met_scale$rank_node)))
+mv=grep("m_v", colnames(PROL_met_scale))
+dt=met[0,0]
+
+for (i in 1:nline) {
+  L=unique(sort(PROL_met_scale$rank_node))[i]
+  av=round(mean(PROL_met_scale[PROL_met_scale$rank_node==L,mv]), digits = 2)
+  n=length(PROL_met_scale[PROL_met_scale$rank_node==L,mv])
+  se=round(std.error(PROL_met_scale[PROL_met_scale$rank_node==L,mv]), digits=2)
+  if(n==1){
+    se=0
+    marg=0}
+  else{
+    t=qt(0.975,df=n-1)
+    #confidence interval = coef * se
+    marg=se*t
+  }
+  d=cbind(L,av,se, marg)
+  dt=rbind(dt,d)
+}
+
+#df: predict~m+v
+dt$pred=predict(glm_box1,
+                  newdata = data.frame(rank_node=seq(0, max(dt$L), length.out = length(dt$L))),
+                  type="response")
+
+#histogram
+png("2e_p.png",width=1200, height=900, res=150)# save plot
+cols<-brewer.pal(n=4,name="Set2")[3:4]
+with(dt,plot(dt$av~dt$L,
+             col = cols[1],
+             main="average #m+v vs rank node",
+             xlab= "rank node",
+             ylab="average #m+v",
+             pch=19))
+with(arrows(x0 = dt$L,                           # Add error bars
+            y0 = dt$av + dt$se,
+            y1 = dt$av - dt$se,
+            angle = 90,
+            code = 3,
+            length = 0.05,
+            col=cols[1]))
+with(dt, lines(dt$pred~dt$L,lwd=5, col=cols[2]))
 legend("top",
        horiz=T,
        xpd = TRUE, legend = c("real", "predicted"),fill = cols, cex=0.6)
 dev.off()
 
-#permutations
+#1: m+v buds ~ parent lenght(cm)+normal normal_distance+ rank_node+length(node)?####
+glm_box1=glm(m_v~length_cm+normal_distance+rank_node+length_nodes,family = "poisson",data = PROL_met_scale)
+summary(glm_box1)#yes
+
+#2: m+v buds ~ parent lenght(cm)+normal_distance+ rank_node?####
+glm_box1=glm(m_v~length_cm+normal_distance+rank_node,family = "poisson",data = PROL_met_scale)
+summary(glm_box1)#yes
+
+#3: m+v buds ~ normal_distance+ rank_node?####
+glm_box1=glm(m_v~normal_distance+rank_node,family = "poisson",data = PROL_met_scale)
+summary(glm_box1)#yes
+
+#we have to choose if weeping normal_distance or rank node 
+
+#normal_distance
+nline=length(unique(sort(PROL_met_scale$normal_distance)))
+mv=grep("m_v", colnames(PROL_met_scale))
+dt=met[0,0]
+
+for (i in 1:nline) {
+  L=unique(sort(PROL_met_scale$normal_distance))[i]
+  av=round(mean(PROL_met_scale[PROL_met_scale$normal_distance==L,mv]), digits = 2)
+  n=length(PROL_met_scale[PROL_met_scale$normal_distance==L,mv])
+  se=round(std.error(PROL_met_scale[PROL_met_scale$normal_distance==L,mv]), digits=2)
+  if(n==1){
+    se=0
+    marg=0}
+  else{
+    t=qt(0.975,df=n-1)
+    #confidence interval = coef * se
+    marg=se*t
+  }
+  d=cbind(L,av,se, marg)
+  dt=rbind(dt,d)
+}
+
+#histogram
+png("2f_p.png",width=1200, height=900, res=150)# save plot
+cols<-brewer.pal(n=4,name="Set2")[3:4]
+with(dt,plot(dt$av~dt$L,
+             col = cols[1],
+             main="average #m+v vs normal_distance",
+             xlab= "normal_distance",
+             ylab="average #m+v",
+             pch=19))
+with(arrows(x0 = dt$L,                           # Add error bars
+            y0 = dt$av + dt$se,
+            y1 = dt$av - dt$se,
+            angle = 90,
+            code = 3,
+            length = 0.05,
+            col=cols[1]))
+dev.off()
+
+#4: m+v buds ~ normal_distance?####
+glm_box1=glm(m_v~normal_distance,family = "poisson",data = PROL_met_scale)
+summary(glm_box1)#yes
+
+#permutations_distance
 null_1=glm(m_v~1,family = "poisson",data = PROL_met_scale)
 summary(null_1)
-dif=null_1$aic-glm_box1$aic
+dif=glm_box1$aic-null_1$aic
 met_nul=PROL_met_scale
 
 df=data.frame(matrix(nrow=0, ncol=0))
-for (i in 1:100) {
-  met_nul$parent_length_cm=sample(PROL_met_scale$parent_length_cm)
-  perm=glm(m_v~parent_length_cm,family = "poisson",data = met_nul)
-  a=null_1$aic-perm$aic
-  b=a>dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
+for (i in 1:10000) {
+  met_nul$normal_distance=sample(PROL_met_scale$normal_distance)
+  perm=glm(m_v~normal_distance,family = "poisson",data = met_nul)
+  a=perm$aic-null_1$aic
+  b=a<dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
   r=cbind(i,a, b)
   df=rbind(df,r)
 }
 
 better_perm=length(which(df$b==1))#times better perm!!!
 
-#2: m+v buds ~ parent lenght (node)?####
-glm_box1=glm(m_v~parent_length_nodes,family = "poisson",data = PROL_met_scale)
-summary(glm_box1)#yes
+#normal_distance
+nline=length(unique(sort(PROL_met_scale$normal_distance)))
+mv=grep("m_v", colnames(PROL_met_scale))
+dt=met[0,0]
 
-#df: #m_v~length
-prop=met[0,0]#empry df
-nline=length(unique(PROL_met_scale$parent_length_nodes))
-mv=grep("^m_v", colnames(PROL_met_scale))
 for (i in 1:nline) {
-  p_length=unique(PROL_met_scale$parent_length_nodes)[i]
-  MV=sum(PROL_met_scale[PROL_met_scale$parent_length_nodes==p_length,mv])
-  prop=rbind(prop, cbind(p_length,MV))
+  L=unique(sort(PROL_met_scale$normal_distance))[i]
+  av=round(mean(PROL_met_scale[PROL_met_scale$normal_distance==L,mv]), digits = 2)
+  n=length(PROL_met_scale[PROL_met_scale$normal_distance==L,mv])
+  se=round(std.error(PROL_met_scale[PROL_met_scale$v==L,mv]), digits=2)
+  if(n==1){
+    se=0
+    marg=0}
+  else{
+    t=qt(0.975,df=n-1)
+    #confidence interval = coef * se
+    marg=se*t
+  }
+  d=cbind(L,av,se, marg)
+  dt=rbind(dt,d)
 }
 
-prop=prop[with(prop, order(p_length)),]#order according to parenth length
-
-#df: predict~length
-pred=as.data.frame.matrix(cbind(PROL_met_scale$parent_length_nodes,predict(glm_box1,type="response")))
-df=met[0,0]#empry df
-nline=length(unique(pred$V1))
-for (i in 1:nline) {
-  p_length=unique(pred$V1)[i]
-  MV=sum(pred[pred$V1==p_length,2])
-  df=rbind(df, cbind(p_length,MV))
-}
-pred=df
-pred=pred[with(pred, order(p_length)), ]
-if (all.equal(pred$p_length,prop$p_length)){prop$predict=pred$MV}
+#df: predict~m+v
+dt$pred=predict(glm_box1,
+                newdata = data.frame(normal_distance=seq(0, max(dt$L), length.out = length(dt$L))),
+                type="response")
 
 #histogram
-png("box2_5p.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=4,name="Set2")[c(3,4)]
-dfbar<-barplot(prop$MV,
-               names.arg = prop$p_length,
-               col = cols[1],
-               main="# of m+v~parent length(nodes)",
-               xlab= "parent length(nodes)", 
-               ylab="# m+v", 
-               ylim=c(0,max(prop$MV)+10))
-lines(x=dfbar,y=prop$predict,lwd=5, col=cols[2])
+png("2g_p.png",width=1200, height=900, res=150)# save plot
+cols<-brewer.pal(n=4,name="Set2")[3:4]
+with(dt,plot(dt$av~dt$L,
+             col = cols[1],
+             main="average #m+v vs normal_distance",
+             xlab= "normal_distance",
+             ylab="average #m+v",
+             pch=19))
+with(arrows(x0 = dt$L,                           # Add error bars
+            y0 = dt$av + dt$se,
+            y1 = dt$av - dt$se,
+            angle = 90,
+            code = 3,
+            length = 0.05,
+            col=cols[1]))
+with(dt, lines(dt$pred~dt$L,lwd=5, col=cols[2]))
 legend("top",
        horiz=T,
        xpd = TRUE, legend = c("real", "predicted"),fill = cols, cex=0.6)
 dev.off()
-
-#permutations
-null_1=glm(m_v~1,family = "poisson",data = PROL_met_scale)
-summary(null_1)
-dif=null_1$aic-glm_box1$aic
-met_nul=PROL_met_scale
-
-df=data.frame(matrix(nrow=0, ncol=0))
-for (i in 1:100) {
-  met_nul$parent_length_nodes=sample(PROL_met_scale$parent_length_nodes)
-  perm=glm(m_v~parent_length_nodes,family = "poisson",data = met_nul)
-  a=null_1$aic-perm$aic
-  b=a>dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
-  r=cbind(i,a, b)
-  df=rbind(df,r)
-}
-
-better_perm=length(which(df$b==1))#times better perm!!!
-
-#3: m+v buds ~ distance?####
-glm_box1=glm(m_v~distance,family = "poisson",data = PROL_met_scale)
-summary(glm_box1)#no
-
-#df: m+v~distance
-prop=met[0,0]#empry df
-nline=length(unique(PROL_met_scale$distance))
-mv=grep("^m_v", colnames(PROL_met_scale))
-for (i in 1:nline) {
-  distance=unique(PROL_met_scale$distance)[i]
-  MV=sum(PROL_met_scale[PROL_met_scale$distance==distance,mv])
-  prop=rbind(prop, cbind(distance,MV))
-}
-
-prop=prop[with(prop, order(distance)),]#order according to parenth length
-
-#histogram
-png("box2_6p.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=4,name="Set2")[1]
-dfbar<-barplot(prop$MV,
-               names.arg = prop$distance,
-               col = cols[1],
-               main="# of m+v~distance from median node",
-               xlab= "distance from median node", 
-               ylab="# m+v", 
-               ylim=c(0,max(prop$MV)+10))
-
-dev.off()
-
-#4: m+v buds ~ parent lenght(cm)+rank_node?####
-glm_box1=glm(m_v~parent_length_cm+parent_rank_node,family = "poisson",data = PROL_met_scale)
-summary(glm_box1)#yes
-
-#5: m+v buds ~ rank_node?####
-glm_box1=glm(m_v~parent_rank_node,family = "poisson",data = PROL_met_scale)
-summary(glm_box1)#yes
-
-#df: m+v ~ rank node
-prop=met[0,0]#empry df
-nline=length(unique(PROL_met_scale$parent_rank_node))
-mv=grep("^m_v", colnames(PROL_met_scale))
-for (i in 1:nline) {
-  p_length=unique(PROL_met_scale$parent_rank_node)[i]
-  MV=sum(PROL_met_scale[PROL_met_scale$parent_rank_node==p_length,mv])
-  prop=rbind(prop, cbind(p_length,MV))
-}
-
-prop=prop[with(prop, order(p_length)),]#order according to parenth length
-
-#df:predict~length
-pred=as.data.frame.matrix(cbind(PROL_met_scale$parent_rank_node,predict(glm_box1,type="response")))
-df=met[0,0]#empry df
-nline=length(unique(pred$V1))
-for (i in 1:nline) {
-  p_length=unique(pred$V1)[i]
-  MV=sum(pred[pred$V1==p_length,2])
-  df=rbind(df, cbind(p_length,MV))
-}
-pred=df
-pred=pred[with(pred, order(p_length)), ]
-if (all.equal(pred$p_length,prop$p_length)){prop$predict_length=pred$MV}
-
-#histogram
-png("box2_7p.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=4,name="Set2")[c(3,4)]
-dfbar<-barplot(prop$MV,
-               names.arg = prop$p_length,
-               col = cols[1],
-               main="# of m+v~rank_node",
-               xlab= "rank_node", 
-               ylab="# m+v", 
-               ylim=c(0,max(prop$MV)+10))
-lines(x=dfbar,y=prop$predict,lwd=5, col=cols[2])
-legend("top",
-       horiz=T,
-       xpd = TRUE, legend = c("real", "predicted"),fill = cols, cex=0.6)
-dev.off()
-
-#permutations
-null_1=glm(m_v~1,family = "poisson",data = PROL_met_scale)
-summary(null_1)
-dif=null_1$aic-glm_box1$aic
-met_nul=PROL_met_scale
-
-df=data.frame(matrix(nrow=0, ncol=0))
-for (i in 1:100) {
-  met_nul$parent_rank_node=sample(PROL_met_scale$parent_rank_node)
-  perm=glm(m_v~parent_rank_node,family = "poisson",data = met_nul)
-  a=null_1$aic-perm$aic
-  b=a>dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
-  r=cbind(i,a, b)
-  df=rbind(df,r)
-}
-
-better_perm=length(which(df$b==1))#times better perm!!!
-
-#6: m+v buds ~ distance+rank_node?####
-glm_box1=glm(m_v~distance+parent_rank_node,family = "poisson",data = PROL_met_scale)
-summary(glm_box1)#no

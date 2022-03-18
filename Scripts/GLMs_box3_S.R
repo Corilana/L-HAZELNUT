@@ -1,11 +1,12 @@
-setwd("C:/Users/franc/Google Drive/PhD/Deruta/R/auto/Lateral")
+wd="C:/Users/franc/Google Drive/PhD/Deruta/"
+setwd(paste0(wd,"R/auto/Lateral/glm"))
 library(stats)
 library(dplyr)
 library(RColorBrewer)
 
-met=read.csv("C:/Users/franc/Google Drive/PhD/Deruta/DF/auto/mtp use/met_level_develop_lateralbuds.csv")
-met[met$shoot_type=="SYLLEPTIC",20]=1
-met[met$shoot_type=="PROLEPTIC",20]=0
+met=read.csv(paste0(wd,"DF/auto/mtp use/met_level_develop_lateralbuds.csv"))
+met[met$shoot_type=="SYLLEPTIC",21]=1
+met[met$shoot_type=="PROLEPTIC",21]=0
 met$shoot_type=as.numeric(met$shoot_type)
 
 #box3:proportion of V
@@ -13,7 +14,7 @@ met$shoot_type=as.numeric(met$shoot_type)
 SYL_met_scale=met[met$shoot_type==1,]#df at bud scale of buds in sylleptic shoots
 
 #change columns names to not make confusion
-colnames(SYL_met_scale)[c(2,6,7,8,15,17)]=c("parent_length_cm",
+colnames(SYL_met_scale)[c(2,6,7,8,16,18)]=c("parent_length_cm",
                                             "parent_length_nodes",
                                             "parent_rank_node",
                                             "distance",
@@ -21,137 +22,221 @@ colnames(SYL_met_scale)[c(2,6,7,8,15,17)]=c("parent_length_cm",
                                             "m_v_in_sylleptic")
 SYL_met_scale$m_v_in_sylleptic=SYL_met_scale$m_v_in_sylleptic-1#REMOVING THE COUNTING OF CATKINS BECAUSE ALL SYLLEPTIC HAS CATKINS
 
-#1:proportion of V ~length?####
-glm_box1=glm(cbind(v,m)~parent_length_cm,family = "binomial",data = SYL_met_scale)
-summary(glm_box1)#no
+#parameters: length(cm), length(node), rank_node, distance
 
-#df: real %v ~ length
-prop=met[0,0]#empty df
-nline=length(unique(SYL_met_scale$parent_length_cm))
-mv=grep("^m_v", colnames(SYL_met_scale))
-v=grep("^v", colnames(SYL_met_scale))
-for (i in 1:nline) {
-  p_length=unique(SYL_met_scale$parent_length_cm)[i]
-  MV=sum(SYL_met_scale[SYL_met_scale$parent_length_cm==p_length,mv])
-  V=sum(SYL_met_scale[SYL_met_scale$parent_length_cm==p_length,v])
-  ratio=V/MV
-  prop=rbind(prop, cbind(p_length,V,MV, ratio))
-}
-
-prop=prop[with(prop, order(p_length)),]#order according to parenth length
-
-#histogram
-png("box3_1.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=3,name="Set2")[1]
-x<-barplot(prop$ratio,col = cols,
-           names.arg = prop$p_length,
-           main="%v (v/m+v)~parent length(cm)",xlab= "Parent length (cm)", ylab="%v (v/m+v)", ylim=c(0,1))
-dev.off()
-
-#2:proportion of V ~length?#####
-glm_box1=glm(cbind(v,m)~parent_length_nodes,family = "binomial",data = SYL_met_scale)
+#1:proportion of V ~length(cm), length(node), rank_node, distance ?####
+glm_box1=glm(cbind(v,m)~parent_length_cm+parent_length_nodes+parent_rank_node+distance,family = "binomial",data = SYL_met_scale)
 summary(glm_box1)#yes
 
-#df:real %v ~ length
-prop=met[0,0]#empty df
-nline=length(unique(SYL_met_scale$parent_length_nodes))
-mv=grep("^m_v", colnames(SYL_met_scale))
-v=grep("^v", colnames(SYL_met_scale))
-for (i in 1:nline) {
-  p_length=unique(SYL_met_scale$parent_length_nodes)[i]
-  MV=sum(SYL_met_scale[SYL_met_scale$parent_length_nodes==p_length,mv])
-  V=sum(SYL_met_scale[SYL_met_scale$parent_length_nodes==p_length,v])
-  ratio=V/MV
-  prop=rbind(prop, cbind(p_length,V,MV, ratio))
-}
+#2:proportion of V ~length(cm), length(node), distance ?####
+glm_box1=glm(cbind(v,m)~parent_length_cm+parent_length_nodes+distance,family = "binomial",data = SYL_met_scale)
+summary(glm_box1)#yes
 
-prop=prop[with(prop, order(p_length)),]#order according to parenth length
+#3:proportion of V ~length(cm), length(node)?####
+glm_box1=glm(cbind(v,m)~parent_length_cm+parent_length_nodes,family = "binomial",data = SYL_met_scale)
+summary(glm_box1)#yes
 
-#df: the predict ~ length
-pred=as.data.frame.matrix(cbind(SYL_met_scale$parent_length_nodes,predict(glm_box1, type="response")))
-pred=unique(pred)
-pred=pred[with(pred, order(V1)), ]
-if (all.equal(pred$V1,prop$p_length)){prop$predict=pred$V2}
-
-#histogram
-png("box3_2.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=4,name="Set2")[3:4]
-dfbar<-barplot(prop$ratio,col = cols[1],
-           names.arg = prop$p_length,
-           main="%v (v/m+v)~parent length(node)",xlab= "Parent length (node)", ylab="%v (v/m+v)", ylim=c(0,1))
-lines(x=dfbar,y=prop$predict,lwd=5, col=cols[2])
-dev.off()
-
-#permutation
-null_1=glm(cbind(v,m)~1,family = "binomial",data = SYL_met_scale)
-summary(null_1)
-dif=null_1$aic-glm_box1$aic
+#permut_ length
+null_1=glm(cbind(v,m)~parent_length_nodes+1,family = "binomial",data = SYL_met_scale)
+dif=glm_box1$aic-null_1$aic
 met_nul=SYL_met_scale
 
 df=data.frame(matrix(nrow=0, ncol=0))
-for (i in 1:100) {
-  met_nul$parent_length_nodes=sample(SYL_met_scale$parent_length_nodes)
-  perm=glm(cbind(v,m)~parent_length_nodes,family = "binomial",data = met_nul)
-  a=null_1$aic-perm$aic
-  b=a>dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
+for (i in 1:10000) {
+  met_nul$parent_length_cm=sample(SYL_met_scale$parent_length_cm)
+  perm=glm(cbind(v,m)~parent_length_cm+parent_length_nodes,family = "binomial",data = met_nul)
+  a=perm$aic-null_1$aic
+  b=a<dif#se a(diff con il modello permutato)<diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
   r=cbind(i,a, b)
   df=rbind(df,r)
 }
 
 better_perm=length(which(df$b==1))#times better perm!!!
 
-#3:proportion of V ~ distance?####
-glm_box1=glm(cbind(v,m)~distance,family = "binomial",data = SYL_met_scale)
-summary(glm_box1)#no
-
-#df:real %v ~ distance
+# df %V~length(cm)
 prop=met[0,0]#empty df
-nline=length(unique(SYL_met_scale$distance))
+nline=length(unique(SYL_met_scale$parent_length_cm))
 mv=grep("^m_v", colnames(SYL_met_scale))
 v=grep("^v", colnames(SYL_met_scale))
 for (i in 1:nline) {
-  distance=unique(SYL_met_scale$distance)[i]
-  MV=sum(SYL_met_scale[SYL_met_scale$distance==distance,mv])
-  V=sum(SYL_met_scale[SYL_met_scale$distance==distance,v])
-  ratio=V/MV
-  prop=rbind(prop, cbind(distance,V,MV, ratio))
+  length=unique(SYL_met_scale$parent_length_cm)[i]
+  MV=sum(SYL_met_scale[SYL_met_scale$parent_length_cm==length,mv])
+  V=sum(SYL_met_scale[SYL_met_scale$parent_length_cm==length,v])
+  ratio=round(V/MV, digit=2)
+  prop=rbind(prop, cbind(length,V,MV, ratio))
 }
 
-prop=prop[with(prop, order(distance)),]#order according to distance
+prop=prop[with(prop, order(length)),]#order according to distance
 
-#histogram
-png("box3_3.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=3,name="Set2")[1]
-x<-barplot(prop$ratio,col = cols,
-           names.arg = prop$distance,
-           main="%v (v/m+v)~distance from median node",xlab= "distance from median node", ylab="%v (v/m+v)", ylim=c(0,1))
+#df: predict~length
+#create a sequence with random numbers between 1 and maximum length (72cm)
+df=data.frame(parent_length_cm=seq(1,max(SYL_met_scale$parent_length_cm),length.out = length(unique(SYL_met_scale$distance))))
+#create 10 repetitions of sequence with random numbers between 0 and 10 (sequence to simulate distance)
+for (i in seq(1,23, by = 3)) {
+  df=cbind(df, data.frame(rep(i, length(df$parent_length_cm))))
+}
+colnames(df)[2:9]="parent_length_nodes"
+
+#predict model according to parent length, for each type of sequence of distance (0-10)
+for (i in 1:(ncol(df)-1)) {
+  h=i+1
+  df=cbind(df,predict(glm_box1,newdata = df[c(1,h)],type="response"))
+}
+
+colnames(df)[10:17]=seq(1,23, by = 3)
+
+#plot
+png("3a_S.png",width=1200, height=900, res=150)# save plot
+cols<-brewer.pal(n=4,name="Set2")[3:4]
+rbPal <- brewer.pal(n=8, name="Set1")
+with(prop, plot(prop$ratio~prop$length,
+                col = cols[1],
+                main="%V (#V/tot mv) vs length(cm) and length(node)",
+                xlab= "parent length(cm)",
+                ylab="%V",
+                ylim=c(0,1),
+                type="h",
+                lwd=4))
+for (i in 1:length(grep("[0-9]", colnames(df)))) {
+  t=grep("[0-9]", colnames(df))[i]
+  with(df,lines(df[,t]~df$parent_length_cm,col=rbPal[i], lwd=5))
+}
+legend("top",
+       inset = c(-0.4, -0.06),
+       horiz=T,
+       xpd = TRUE,c("real", "length_nod=1","length_nod=4","length_nod=7","length_nod=10","length_nod=13","length_nod=16","length_nod=19","length_nod=22"),
+       pch = c(19,NA,NA,NA,NA,NA,NA,NA,NA),lty=c(NA,1,1,1,1,1,1,1,1), lwd=5,
+       col = c(cols[1], rbPal),
+       cex=0.5)
 dev.off()
 
-#4:proportion of V ~ rank node?####
-glm_box1=glm(cbind(v,m)~parent_length_nodes+parent_rank_node,family = "binomial",data = SYL_met_scale)
+#4:proportion of V ~length(cm)?####
+glm_box1=glm(cbind(v,m)~parent_length_cm,family = "binomial",data = SYL_met_scale)
 summary(glm_box1)#no
+#5:proportion of V ~length(node)?####
+glm_box1=glm(cbind(v,m)~parent_length_nodes,family = "binomial",data = SYL_met_scale)
+summary(glm_box1)#yes
 
-#df:real %v ~ rank
+#permut_ length
+null_1=glm(cbind(v,m)~1,family = "binomial",data = SYL_met_scale)
+dif=glm_box1$aic-null_1$aic
+met_nul=SYL_met_scale
+
+df=data.frame(matrix(nrow=0, ncol=0))
+for (i in 1:10000) {
+  met_nul$parent_length_nodes=sample(SYL_met_scale$parent_length_nodes)
+  perm=glm(cbind(v,m)~parent_length_nodes,family = "binomial",data = met_nul)
+  a=perm$aic-null_1$aic
+  b=a<dif#se a(diff con il modello permutato)<diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
+  r=cbind(i,a, b)
+  df=rbind(df,r)
+}
+
+better_perm=length(which(df$b==1))#times better perm!!!
+
+# df %V~length(NODE)
 prop=met[0,0]#empty df
-nline=length(unique(SYL_met_scale$parent_rank_node))
+nline=length(unique(SYL_met_scale$parent_length_nodes))
 mv=grep("^m_v", colnames(SYL_met_scale))
 v=grep("^v", colnames(SYL_met_scale))
 for (i in 1:nline) {
-  rank=unique(SYL_met_scale$parent_rank_node)[i]
-  MV=sum(SYL_met_scale[SYL_met_scale$parent_rank_node==rank,mv])
-  V=sum(SYL_met_scale[SYL_met_scale$parent_rank_node==rank,v])
-  ratio=V/MV
-  prop=rbind(prop, cbind(rank,V,MV, ratio))
+  length=unique(SYL_met_scale$parent_length_nodes)[i]
+  MV=sum(SYL_met_scale[SYL_met_scale$parent_length_nodes==length,mv])
+  V=sum(SYL_met_scale[SYL_met_scale$parent_length_nodes==length,v])
+  ratio=round(V/MV, digit=2)
+  prop=rbind(prop, cbind(length,V,MV, ratio))
 }
 
-prop=prop[with(prop, order(rank)),]#order according to rank
+prop=prop[with(prop, order(length)),]#order according to distance
 
-#histogram
-png("box3_4.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=4,name="Set2")[1]
-dfbar<-barplot(prop$ratio,col = cols[1],
-               names.arg = prop$rank,
-               main="%v (v/m+v) in syleptic ~parental rank node",
-               xlab= "parental rank node",
-               ylab="%v (v/m+v)", ylim=c(0,1))
+#df: predict~length
+#create a sequence with random numbers between 1 and maximum length (72cm)
+prop$pred=predict(glm_box1,
+                  newdata = data.frame(parent_length_nodes=seq(1, max(prop$length), length.out = length(prop$length))),
+                  type="response")
+
+#plot
+png("3_S.png",width=1200, height=900, res=150)# save plot
+cols<-brewer.pal(n=4,name="Set2")[3:4]
+rbPal <- brewer.pal(n=8, name="Set1")
+with(prop, plot(prop$ratio~prop$length,
+                col = cols[1],
+                main="%V (#V/tot mv) vs length(node)",
+                xlab= "parent length(node)",
+                ylab="%V",
+                ylim=c(0,1),
+                type="h",
+                lwd=4))
+with(prop, lines(prop$pred~prop$length,lwd=5, col=cols[2]))
+legend("top",
+       horiz=T,
+       xpd = TRUE, legend = c("real", "predicted"),fill = cols, cex=0.6)
 dev.off()
+
+#try: length and rank are related. has the ratio an effect?####
+SYL_met_scale$inter=SYL_met_scale$parent_length_cm/SYL_met_scale$parent_length_nodes
+
+#1:proportion of V ~rank_node,inter, distance ?####
+glm_box1=glm(cbind(v,m)~inter+parent_rank_node+distance,family = "binomial",data = SYL_met_scale)
+summary(glm_box1)#yes
+
+#2:proportion of V ~rank_node,inter?####
+glm_box1=glm(cbind(v,m)~inter+parent_rank_node,family = "binomial",data = SYL_met_scale)
+summary(glm_box1)#yes
+
+#3:proportion of V ~rank_node?####
+glm_box1=glm(cbind(v,m)~parent_rank_node,family = "binomial",data = SYL_met_scale)
+summary(glm_box1)#no
+
+#permut_ rank
+null_1=glm(cbind(v,m)~1,family = "binomial",data = SYL_met_scale)
+dif=glm_box1$aic-null_1$aic
+met_nul=SYL_met_scale
+
+df=data.frame(matrix(nrow=0, ncol=0))
+for (i in 1:10000) {
+  met_nul$parent_rank_node=sample(SYL_met_scale$parent_rank_node)
+  perm=glm(cbind(v,m)~parent_rank_node,family = "binomial",data = met_nul)
+  a=perm$aic-null_1$aic
+  b=a<dif#se a(diff con il modello permutato)<diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
+  r=cbind(i,a, b)
+  df=rbind(df,r)
+}
+
+better_perm=length(which(df$b==1))#times better perm!!!
+
+# df %V~length(cm)
+prop=met[0,0]#empty df
+nline=length(unique(SYL_met_scale$inter))
+mv=grep("^m_v", colnames(SYL_met_scale))
+v=grep("^v", colnames(SYL_met_scale))
+for (i in 1:nline) {
+  length=unique(SYL_met_scale$inter)[i]
+  MV=sum(SYL_met_scale[SYL_met_scale$inter==length,mv])
+  V=sum(SYL_met_scale[SYL_met_scale$inter==length,v])
+  ratio=round(V/MV, digit=2)
+  prop=rbind(prop, cbind(length,V,MV, ratio))
+}
+
+prop=prop[with(prop, order(length)),]#order according to distance
+
+#no rank node is not linked
+
+#plot
+png("3a_S.png",width=1200, height=900, res=150)# save plot
+cols<-brewer.pal(n=4,name="Set2")[3:4]
+rbPal <- brewer.pal(n=8, name="Set1")
+with(prop, plot(prop$ratio~prop$length,
+                col = cols[1],
+                main="%V (#V/tot mv) vs internode length(cm)",
+                xlab= "internode length(cm)",
+                ylab="%V",
+                ylim=c(0,1),
+                type="h",
+                lwd=4))
+dev.off()
+
+#let's keep proportion of V in sylleptic as a constant (av+-se)####
+ratio=SYL_met_scale$v/SYL_met_scale$m_v_in_sylleptic
+av=mean(ratio, na.rm = T)
+se=std.error(ratio, na.rm = T)

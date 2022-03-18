@@ -55,6 +55,9 @@ for (i in 1:nline) {#write a column with the absolute value of distance with ran
   met[i,dis]=abs(met[i,ran]-lat[i,1])
 }
 
+met=dplyr::mutate(met, normal_distance=NA, .after=median_distance)#add new column for the distance
+met$normal_distance=round(met$median_distance/met$`Length(node)`, digits = 2)
+
 v=grep(paste0("v","$"), colnames(met))#column vegetative
 m=grep(paste0("m","$"), colnames(met))#column mixed
 b=grep(paste0("b","$"), colnames(met))#column blind
