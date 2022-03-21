@@ -10,3 +10,4 @@
  How to handle variables that had some significant effect when considered as the only predictor, but could become non-significant when considered with another predictor?
   * JB (18/03/2022): why not to include the total number of buds (or shoots) when modelling the proportions of V/M?
   Please remind what "new_shoots" are when comparing models to predict them (shoots of branching order 2 bursting or not?)
+  There has been a suggestion by Fred to colour points consistently with lines in Poisson GLMs with 2 predictors
