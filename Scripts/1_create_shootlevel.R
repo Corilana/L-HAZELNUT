@@ -7,12 +7,12 @@ ann=read.csv("C:/Users/franc/Google Drive/PhD/Deruta/DF/auto/2020DFAUTO.csv")
 
 nline=length(ann$shoot)#how many lines
 colnode=grep("node$",colnames(ann))#column node
-colc=grep("c$",colnames(ann))#column catkins
-colv=grep("v$",colnames(ann))#column vegetative
-colm=grep("m$",colnames(ann))#column mixed
-colcl=grep("cl$",colnames(ann))#column cluster
-colnu=grep("nu$",colnames(ann))#column nuts
-colb=grep("b$",colnames(ann))#column blind
+colc=grep("^c$",colnames(ann))#column catkins
+colv=grep("^v$",colnames(ann))#column vegetative
+colm=grep("^m$",colnames(ann))#column mixed
+colcl=grep("^cl$",colnames(ann))#column cluster
+colnu=grep("^nu$",colnames(ann))#column nuts
+colb=grep("^b$",colnames(ann))#column blind
 
 ann=dplyr::mutate(ann, "tot_buds_m+v+b+c"=NA, .after = b)#new column
 

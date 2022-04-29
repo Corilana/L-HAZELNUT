@@ -50,17 +50,17 @@ t=prop.table(r,margin=1)*100
 #graph
 png("5.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
-cols<-brewer.pal(n=length(colnames(r)),name="Set3")
-x<-barplot(t(r),col = cols,main="combinations of laterals from proleptic buds", xlab= "Rank nodes", ylab="# of child class")
-legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(r)),fill = cols, cex=0.6)
+cols<-brewer.pal(n=length(colnames(r[1:16,])),name="Set3")
+x<-barplot(t(r[1:16,]),col = cols,main="combinations of laterals from proleptic buds", xlab= "Rank nodes", ylab="# of child class")
+legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(r[1:16,])),fill = cols, cex=0.6)
 dev.off()
 
 #graph
 png("5a.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
-cols<-brewer.pal(n=length(colnames(t)),name="Set3")
-x<-barplot(t(t),col = cols,main="combinations of laterals from proleptic buds", xlab= "Rank nodes", ylab="% of child class", ylim=c(0,100))
-legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(t)),fill = cols, cex=0.6)
+cols<-brewer.pal(n=length(colnames(t[1:16,])),name="Set3")
+x<-barplot(t(t[1:16,]),col = cols,main="combinations of laterals from proleptic buds", xlab= "Rank nodes", ylab="% of child class", ylim=c(0,100))
+legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(t[1:16,])),fill = cols, cex=0.6)
 dev.off()
 
 #2: what is the combination of lateral childs in proleptic?####
@@ -90,18 +90,19 @@ TAB=TAB[order(TAB$rank_node),]
 
 r=table(TAB$rank_node,TAB$laterals)
 t=prop.table(r,margin=1)*100
+
 #graph
 png("5c.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
-cols<-brewer.pal(n=length(colnames(r)),name="Set3")
-x<-barplot(t(r),col = cols,main="combinations of laterals from sylleptic buds", xlab= "Rank nodes of parental", ylab="# of child class")
-legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(r)),fill = cols, cex=0.6)
+cols<-brewer.pal(n=length(colnames(t(r[1:16,]))),name="Set3")
+x<-barplot(t(r[1:16,]),col = cols,main="combinations of laterals from sylleptic buds", xlab= "Rank nodes of parental", ylab="# of child class")
+legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(r[1:16,])),fill = cols, cex=0.6)
 dev.off()
 
 #graph5b
 png("5d.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
-cols<-brewer.pal(n=length(colnames(t)),name="Set3")
-x<-barplot(t(t),col = cols,main="combinations of laterals from sylleptic buds", xlab= "Rank nodes of parental", ylab="% of child class", ylim=c(0,100))
-legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(t)),fill = cols, cex=0.6)
+cols<-brewer.pal(n=length(colnames(t[1:16,])),name="Set3")
+x<-barplot(t(t[1:16,]),col = cols,main="combinations of laterals from sylleptic buds", xlab= "Rank nodes of parental", ylab="% of child class", ylim=c(0,100))
+legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(t[1:16,])),fill = cols, cex=0.6)
 dev.off()

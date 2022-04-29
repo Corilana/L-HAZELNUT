@@ -41,6 +41,7 @@ bud=read.csv("auto/bud_level_FINAL.csv")
 fate=c("M","V","B","C")
 nline=length(ann$tesi)
 
+#loop to delete apical bud if "fate_apicals" is that type of bud
 for (i in 1:nline) {
   f=ann$fate_apicals[i]
   if (length(f)!=0) {
@@ -51,4 +52,5 @@ for (i in 1:nline) {
 }
 
 ann=ann[ann$n_lateral_buds!=0,]
+
 write.csv(ann,"auto/shoot_level_develop_lateralbuds.csv", row.names = F)

@@ -24,6 +24,7 @@ proleptic=met#copy df metamer level
 
 sh=grep("^shoot$", colnames(proleptic))
 sy=grep("^shoot_type", colnames(proleptic))
+c=grep("^c$", colnames(proleptic))
 v=grep("^v$", colnames(proleptic))
 m=grep("^m$", colnames(proleptic))
 b=grep("^b$", colnames(proleptic))
@@ -44,13 +45,12 @@ nline=length(unique(sort(proleptic$rank_node)))
 for (q in 1:nline) {
   Q=unique(sort(proleptic$rank_node))[q]
   TAB_PRO[paste0(Q),"rank_node"]=Q
-  TAB_PRO[paste0(Q),"shoots_with_tank"]=length(proleptic[proleptic$rank_node==Q,sh])
+  TAB_PRO[paste0(Q),"shoots_with_rank"]=length(proleptic[proleptic$rank_node==Q,sh])
   TAB_PRO[paste0(Q),"sylleptic"]=table(proleptic$rank_node, proleptic$shoot_type)[Q,2]#sylleptic for each parental node?
   TAB_PRO[paste0(Q),"v"]=sum(proleptic[proleptic$rank_node==Q,v])#v for each parental node?
   TAB_PRO[paste0(Q),"m"]=sum(proleptic[proleptic$rank_node==Q,m])#m for each parental node?
   TAB_PRO[paste0(Q),"b"]=sum(proleptic[proleptic$rank_node==Q,b])#b for each parental node?
 }
-
 TAB_PRO["sums",2:6]=colSums(TAB_PRO[2:6])#sums each observations(obs)
 TAB_PRO[,"sum_obs"]=rowSums(TAB_PRO[3:6])#sum obserbations per each node
 
@@ -76,7 +76,6 @@ dev.off()
 
 #2_ % buds in sylleptic shoots####
 #~rank node of the proleptic it sprouts in
-
 #subset sylleptic(met level)
 syl=met[met$shoot_type=="SYLLEPTIC",]
 

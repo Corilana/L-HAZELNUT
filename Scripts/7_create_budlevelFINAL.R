@@ -86,7 +86,7 @@ c.def=m.df#create an empty dataframe
 b.def=m.df#create an empty dataframe
 
 nline=length(bud.level[,1])#total lines
-for (i in 1:nline){#creating a dataframe with all the possible values for each buds in letters (es in multiple buds there are more than 1)
+for (i in 1:nline){#creating a dataframe with all the possible values for each bud in letters (es in multiple buds there are more than 1)
   m=bud.level$m[i]
   if(m!=0){
     m.df=rbind.fill(m.df, as.data.frame(t(rep("M",m))))

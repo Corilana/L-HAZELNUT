@@ -31,14 +31,14 @@ colnames(TOT)=c("V","M")
 #graph
 png("6.png",width=1200, height=900, res=150)# save plot
 col=brewer.pal(n=4,name="Set2")
-with(TOT, plot(V, pch=19, cex=1.2,col=col[2], main="proportion of proleptic buds developed", xlab="parental rank nodes", ylab="%", type="o", ylim=c(0,100)))
-with(TOT, points(M, pch=19, cex=1.2,col=col[3], type="o", ylim=c(0,100)))
+with(TOT[1:16,], plot(V, pch=19, cex=1.2,col=col[2], main="proportion of proleptic buds developed", xlab="rank nodes", ylab="%", type="o", ylim=c(0,100)))
+with(TOT[1:16,], points(M, pch=19, cex=1.2,col=col[3], type="o", ylim=c(0,100)))
 legend("bottom",inset = c(-0.2,0),xpd = TRUE, legend= c("vegetative buds", "mixed buds"), lwd=3, cex= 0.7, col=col[c(2,3)])
 dev.off()
 
 #2: what is the length of new shoots from V?####
 df=lat[lat$new_shoots!=0,]
-df=df[df$from_=="PROL",1:20]
+df=df[df$from_=="PROL",1:23]
 dr=table(df$rank_node,df$length.newshoots,df$fate)
 V=as.data.frame.matrix(dr[,, "V"])#developed from v
 
@@ -46,10 +46,10 @@ V=as.data.frame.matrix(dr[,, "V"])#developed from v
 png("6a.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
 col=brewer.pal(n=4,name="Set1")
-with(V, plot(Sh, pch=19, cex=1.2,col=col[1], main="numbers of laterals from vegetative bud in proleptic shoots", xlab="parental rank nodes", ylab="#", type="o", ylim=c(0,55)))
-with(V, points(Me, pch=19, col=col[2],cex=1.2,type="o"))
-with(V, points(Lo, pch=19, col=col[3],cex=1.2,type="o"))
-with(V, points(VLo, pch=19, col=col[4],cex=1.2,type="o"))
+with(V[1:16,], plot(Sh, pch=19, cex=1.2,col=col[1], main="numbers of laterals from vegetative bud in proleptic shoots", xlab="parental rank nodes", ylab="#", type="o", ylim=c(0,55)))
+with(V[1:16,], points(Me, pch=19, col=col[2],cex=1.2,type="o"))
+with(V[1:16,], points(Lo, pch=19, col=col[3],cex=1.2,type="o"))
+with(V[1:16,], points(VLo, pch=19, col=col[4],cex=1.2,type="o"))
 legend("topright",inset = c(-0.2,0),xpd = TRUE, legend= colnames(V), lwd=3, cex= 0.8, col=col)
 dev.off()
 
@@ -59,15 +59,16 @@ V.p=as.data.frame.matrix(prop.table(dr[,, "V"],margin=1)*100)
 png("6C.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
 col=brewer.pal(n=4,name="Set1")
-with(V.p, plot(Sh, pch=19, cex=1.2,col=col[1], main="% of laterals from vegetative bud in proleptic shoots", xlab="parental rank nodes", ylab="%", type="o", ylim=c(0,100)))
-with(V.p, points(Me, pch=19, col=col[2],cex=1.2,type="o"))
-with(V.p, points(Lo, pch=19, col=col[3],cex=1.2,type="o"))
-with(V.p, points(VLo, pch=19, col=col[4],cex=1.2,type="o"))
+with(V.p[1:16,], plot(Sh, pch=19, cex=1.2,col=col[1], main="% of laterals from vegetative bud in proleptic shoots", xlab="parental rank nodes", ylab="%", type="o", ylim=c(0,100)))
+with(V.p[1:16,], points(Me, pch=19, col=col[2],cex=1.2,type="o"))
+with(V.p[1:16,], points(Lo, pch=19, col=col[3],cex=1.2,type="o"))
+with(V.p[1:16,], points(VLo, pch=19, col=col[4],cex=1.2,type="o"))
 legend("topright",inset = c(-0.2,0),xpd = TRUE, legend= colnames(V.p), lwd=3, cex= 0.8, col=col)
 dev.off()
 
-#3: what is the length of new shoots from V?####
+#3: what is the length of new shoots from M?####
 M=as.data.frame.matrix(dr[,, "M"])
+M=M[1:16,]
 #graph
 png("6b.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
@@ -80,7 +81,7 @@ legend("topright",inset = c(-0.2,0),xpd = TRUE, legend= colnames(M), lwd=3, cex=
 dev.off()
 
 M.p=as.data.frame.matrix(prop.table(dr[,, "M"],margin=1)*100)
-
+M.p=M.p[1:16,]
 #graph6b
 png("6d.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))

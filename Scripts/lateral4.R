@@ -39,9 +39,9 @@ ranksyl=table(proleptic$rank_node, proleptic$n_lateral_buds)
 
 #graph
 png("4.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=length(colnames(ranksyl)),name="Set3")
-x<-barplot(t(ranksyl),col = cols,main="number of buds/sylleptic per rank in proleptic shoots", xlab= "Rank nodes", ylab="# of multiple buds/sylleptic")
-legend("topright",inset=c(-0.03,-0.1),xpd = TRUE, legend = rownames(t(ranksyl)),fill = cols, cex=0.8)
+cols<-brewer.pal(n=length(colnames(ranksyl[1:16,])),name="Set3")
+x<-barplot(t(ranksyl[1:16,]),col = cols,main="number of buds/sylleptic per rank in proleptic shoots", xlab= "Rank nodes", ylab="# of multiple buds/sylleptic")
+legend("topright",inset=c(-0.03,-0.1),xpd = TRUE, legend = rownames(t(ranksyl[1:16,])),fill = cols, cex=0.8)
 dev.off()
 
 #proportions
@@ -50,16 +50,14 @@ head(ranksyl,20)
 
 #graph
 png("4a.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=length(colnames(ranksyl)),name="Set3")
-x<-barplot(t(ranksyl),col = cols, main="% of buds/sylleptic per rank in proleptic shoots", xlab= "Rank nodes", ylab="% of multiple buds", ylim=c(0,100))
-legend("topright",inset=c(-0.03,-0.1),xpd = TRUE, legend = rownames(t(ranksyl)),fill = cols, cex=0.8)
+cols<-brewer.pal(n=length(colnames(ranksyl[1:16,])),name="Set3")
+x<-barplot(t(ranksyl[1:16,]),col = cols, main="% of buds/sylleptic per rank in proleptic shoots", xlab= "Rank nodes", ylab="% of multiple buds", ylim=c(0,100))
+legend("topright",inset=c(-0.03,-0.1),xpd = TRUE, legend = rownames(t(ranksyl[1:16,])),fill = cols, cex=0.8)
 dev.off()
 
 #2: what is the composition of multiple buds in proleptic?####
 nline=length(proleptic$tesi)
-
 s=grep("^sylleptic", colnames(proleptic))
-
 tot=c(s,v,m,b)
 
 #change the number of buds with the letter (es. 1v =v)
@@ -97,8 +95,8 @@ head(bind,20)
 png("4b.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
 cols<-c(brewer.pal(name="Spectral", n=11)[c(2:5,9:11)],brewer.pal(name="Dark2", n = 7))
-x<-barplot(t(bind[1:17,]),col = cols,main="# combination of buds/sylleptic in proleptic shoots ", xlab= "Rank nodes", ylab="# of observation")
-legend("topright",inset = c(-0.3, +0.01),xpd = TRUE, legend = rownames(t(bind)),fill = cols, cex=0.6)
+x<-barplot(t(bind[1:16,]),col = cols,main="# combination of buds/sylleptic in proleptic shoots ", xlab= "Rank nodes", ylab="# of observation")
+legend("topright",inset = c(-0.3, +0.01),xpd = TRUE, legend = rownames(t(bind[1:16,])),fill = cols, cex=0.6)
 dev.off()
 
 merg=as.data.frame.matrix(prop.table(table(proleptic$rank_node,proleptic$merge), margin=1)*100)
@@ -108,8 +106,8 @@ head(merg,20)
 png("4c.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
 cols<-c(brewer.pal(name="Spectral", n=11)[c(2:5,9:11)],brewer.pal(name="Dark2", n = 7))
-x<-barplot(t(merg[1:17,]),col = cols,main="% combination of buds/sylleptic in proleptictic shoots ", xlab= "Rank nodes", ylab="% of observation", ylim=c(0,100))
-legend("topright",inset = c(-0.3, +0.01),xpd = TRUE, legend = rownames(t(merg)),fill = cols, cex=0.6)
+x<-barplot(t(merg[1:16,]),col = cols,main="% combination of buds/sylleptic in proleptictic shoots ", xlab= "Rank nodes", ylab="% of observation", ylim=c(0,100))
+legend("topright",inset = c(-0.3, +0.01),xpd = TRUE, legend = rownames(t(merg[1:16,])),fill = cols, cex=0.6)
 dev.off()
 
 #4: multiple buds ~ rank node in sylleptic?####
@@ -194,3 +192,4 @@ cols<-c("black", "blue","red","white","green","pink","yellow","gray","brown",bre
 x<-barplot(t(mergsi[,1:22]),col = cols,main="combination of buds in sylleptic  shoots", xlab= "Rank nodes of parental", ylab="% of observation", ylim=c(0,100))
 legend("topright",inset = c(-0.3, +0.01),xpd = TRUE, legend = rownames(t(mergsi[,1:22])),fill = cols, cex=0.6)
 dev.off()
+

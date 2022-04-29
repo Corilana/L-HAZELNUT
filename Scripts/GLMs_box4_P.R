@@ -1,36 +1,82 @@
-wd="C:/Users/franc/Google Drive/PhD/Deruta/"
-setwd(paste0(wd,"R/auto/Lateral/glm"))
+#are you bursting?
 
+#set working directory
+wd="C:/Users/franc/Google Drive/PhD/Deruta/"
+setwd(paste0(wd, "R/auto/Lateral/glm"))
+#import library
 library(stats)
 library(dplyr)
 library(RColorBrewer)
+library(plotrix)
+library(plyr)
+library(nnet)
+library(effects)
+
+wd="C:/Users/franc/Google Drive/PhD/Deruta/"
+setwd(paste0(wd,"R/auto/Lateral/glm"))
 
 lat=read.csv(paste0(wd,"DF/auto/mtp use/bud_level_LATERALS.csv"))
 #box4: do the bud (V and M) burst?
 PRO_bud_scale=lat[lat$from_=="PROL",]
-colnames(PRO_bud_scale)[c(2,6,7,8,16)]=c("length_cm","length_node","rank_node","distance","m_v")
-PRO_bud_scale$m_v=PRO_bud_scale$m_v-PRO_bud_scale$b#ELIMINIAMO GEMME B NELLO STESSO NODO
+#change columns names to not make confusion
+a=grep("^Length$", names(PRO_bud_scale))
+b=grep(".node.$", names(PRO_bud_scale))
+c=grep("rank", names(PRO_bud_scale))
+d=grep("abs", names(PRO_bud_scale))
+e=grep("tot_", names(PRO_bud_scale))
+colnames(PRO_bud_scale)[c(a,b,c,d,e)]=c("length_cm","length_node","rank_node","distance","m_v")
+MV=PRO_bud_scale[PRO_bud_scale$fate=="M"|PRO_bud_scale$fate=="V",]#for fate= "M"
+MV$sib=MV$v+MV$m+MV$b
 
-V=PRO_bud_scale[PRO_bud_scale$fate=="V",]#for fate= "V"
-M=PRO_bud_scale[PRO_bud_scale$fate=="M",]#for fate= "M"
+V=MV[MV$fate=="V",]#for fate= "V"
+M=MV[MV$fate=="M",]#for fate= "M"
 #parameters: length(cm), length(node), rank_node, distance, m, v
+#M and V####
+MV$fate=as.factor(MV$fate)
+MV$fate=relevel(MV$fate, "V")
+str(MV)
+#1: new_shoots~fate+fate*parent_length_cm+fate*parent_length_node+fate*parent_rank_node+fate*median_distance+fate*m+fate*v####
+glm_box1 = glm(new_shoots~sib+length_cm+fate*distance, family="binomial",data=MV)#first check tot_buds to see if siblings are impo
+summary(glm_box1)#no
+#2: new_shoots~fate+fate*parent_length_cm+fate*parent_rank_node+fate*median_distance+fate*m+fate*v####
+glm_box1 = glm(new_shoots~fate+fate*sib+fate*length_cm+fate*rank_node+fate*distance, family="binomial",data=MV)#first check tot_buds to see if siblings are impo
+summary(glm_box1)#no
+#permut_ rank
+null_1=glm(new_shoots~fate+fate*length_cm+fate*distance+fate*v+1, family="binomial",data=MV)
+dif=glm_box1$aic-null_1$aic
+met_nul=MV
 
+df=data.frame(matrix(nrow=0, ncol=0))
+for (i in 1:10000) {
+  met_nul$rank_node=sample(MV$rank_node)
+  perm=glm(new_shoots~fate+fate*length_cm+fate*rank_node+fate*distance+fate*v, family="binomial",data=met_nul)
+  a=perm$aic-null_1$aic
+  b=a<dif#se a(diff con il modello permutato)<diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
+  r=cbind(i,a, b)
+  df=rbind(df,r)
+}
+
+better_perm=length(which(df$b==1))#times better perm!!!
+#3: new_shoots~fate+fate*parent_length_cm+fate*median_distance+fate*sib####
+glm_box1 = glm(new_shoots~fate+fate*sib+fate*length_cm+fate*distance, family="binomial",data=MV)#first check tot_buds to see if siblings are impo
+summary(glm_box1)#no
+
+coef=coef(glm_box1)
+odd=exp(coef)
+prob=odd/(1+odd)
+
+#graph
+png("4p_P.png",width=1200, height=900, res=150)# save plot
+with(plot(allEffects(glm_box1)))
+dev.off()
+
+#manteniamo m+v ma togliamo le interazioni####
 #1: new_shoots~Length+length(node)+rank_node+distance+m+v####
 glm_box1 = glm(new_shoots~length_cm+length_node+rank_node+distance+m+v, family="binomial",data=V)#first check tot_buds to see if siblings are impo
 summary(glm_box1)#no
-
-#1.1: new_shoots~Length+length(node)+rank_node+distance+m_v
-glm_box1 = glm(new_shoots~length_cm+length_node+rank_node+distance+m_v, family="binomial",data=V)#first check tot_buds to see if siblings are impo
-summary(glm_box1)#no
-
 #2: new_shoots~Length+rank_node+distance+m+v####
 glm_box1 = glm(new_shoots~length_cm+rank_node+distance+m+v, family="binomial",data=V)#first check tot_buds to see if siblings are impo
 summary(glm_box1)#no
-
-#2.1: new_shoots~Length+rank+distance+m_v
-glm_box1 = glm(new_shoots~length_cm+rank_node+distance+m_v, family="binomial",data=V)#first check tot_buds to see if siblings are impo
-summary(glm_box1)#no
-
 #3: new_shoots~Length+rank_node+distance+v####
 glm_box1 = glm(new_shoots~length_cm+rank_node+distance+v, family="binomial",data=V)#first check tot_buds to see if siblings are impo
 summary(glm_box1)#no
@@ -147,7 +193,6 @@ with(prop, plot(prop$ratio~prop$rank,
                 ylab="%new_shoots",
                 ylim=c(0,1), type="h", lwd=5))
 dev.off()
-
 #4: new_shoots~v####
 glm_box1 = glm(new_shoots~v, family="binomial",data=V)#first check tot_buds to see if siblings are impo
 summary(glm_box1)#no
@@ -181,20 +226,19 @@ legend("top",
        xpd = TRUE, legend = c("real", "predicted"),fill = cols, cex=0.6)
 dev.off()
 
+###using sibling buds(m+v) as predictor
 #1: new_shoots~Length+length(node)+rank_node+distance+m_v####
-glm_box1 = glm(new_shoots~length_cm+length_node+rank_node+distance+m_v, family="binomial",data=M)#first check tot_buds to see if siblings are impo
+glm_box1 = glm(new_shoots~length_cm+length_node+rank_node+distance+sib, family="binomial",data=M)#first check tot_buds to see if siblings are impo
 summary(glm_box1)#no
-
 #2: new_shoots~Length+length(node)+rank_node+m_v####
-glm_box1 = glm(new_shoots~length_cm+length_node+rank_node+m_v, family="binomial",data=M)#first check tot_buds to see if siblings are impo
+glm_box1 = glm_box1 = glm(new_shoots~length_cm+length_node+rank_node+sib, family="binomial",data=M)#first check tot_buds to see if siblings are impo
 summary(glm_box1)#no
-
 #3: new_shoots~Length+rank_node+m_v####
-glm_box1 = glm(new_shoots~length_cm+rank_node+m_v, family="binomial",data=M)#first check tot_buds to see if siblings are impo
+glm_box1 = glm(new_shoots~length_cm+rank_node+sib, family="binomial",data=M)#first check tot_buds to see if siblings are impo
 summary(glm_box1)#no
 
 #4: new_shoots~rank_node+m_v####
-glm_box1 = glm(new_shoots~rank_node+m_v, family="binomial",data=M)#first check tot_buds to see if siblings are impo
+glm_box1 = glm(new_shoots~length_cm+rank_node+sib, family="binomial",data=M)#first check tot_buds to see if siblings are impo
 summary(glm_box1)#no
 
 #permut_ rank

@@ -14,22 +14,27 @@ library(gridExtra)
 ann=read.csv(paste0(wd, "DF/auto/shoot_level_develop_lateralbuds.csv"))
 #bud level
 lat=read.csv(paste0(wd, "DF/auto/mtp use/bud_level_LATERALS.csv"))
-lat <- dplyr::mutate(lat, class = factor(class,levels = c("Sh", "Me", "Lo", "VLo")))
-lat <- dplyr::mutate(lat, length.newshoots = factor(length.newshoots,levels = c("Sh", "Me", "Lo", "VLo")))
+lat$class=factor(lat$class, levels=c("Sh", "Me", "Lo", "VLo"))
+lat$length.newshoots=factor(lat$length.newshoots, levels=c("Sh", "Me", "Lo", "VLo"))
 
-#general analysis of the lateral dataframes at BUD scale
+#store index column "shoot id"
 s=grep("^shoot$",colnames(lat))
+#store index column "parent class"
 c=grep("^class$",colnames(lat))
-lnew=grep("newshoots$",colnames(lat))
+#store index column "length parent"
+lpar=grep("^Length$",colnames(lat))
+#store index column "length new shots"
+lnew=grep(".new",colnames(lat))
+#store index column "fate parent bud"
 f=grep("fate$",colnames(lat))
-p=grep("from_$",colnames(lat))
 
 
-TAB1=cbind(as.data.frame(table(unique(lat[c:s])[1])),#class of parental
-           (as.data.frame(table(lat[c(c,f)][1]))[2]),##buds in parentals
-           (as.data.frame(table(unique(lat[lat$new_shoots!=0,c:s])[1]))[2]),#class of parentals with children?
-           (as.data.frame(table(lat[lat$new_shoots!=0,c(c,f)][1]))[2]),#buds in each class of parent
-           as.data.frame(table(lat[lat$new_shoots!=0,c(c:s,lnew)][3]))#class of children?
+#1Parental class
+TAB1=cbind(as.data.frame(table(unique(lat[c:s])[1])),#nb_parental shoot per class
+           (as.data.frame(table(lat[c]))[2]),##nb_buds in parentals per class
+           (as.data.frame(table(unique(lat[lat$new_shoots!=0,c:s])[1]))[2]),#nb_ parental with children per class
+           (as.data.frame(table(lat[lat$new_shoots!=0,c(c,f)][1]))[2]),#nb_buds in parentals with children per class
+           as.data.frame(table(lat[lat$new_shoots!=0,c(c:s,lnew)][3]))#nb_children per class
 )
 colnames(TAB1)=c("Class","parental_freq","tot_lat_buds","parental_with_children_freq","tot_buds_in_parent_with_child","child_class","children_freq")
 TAB1["Sum",c(2:5,7)]=colSums(TAB1[c(2:5,7)])
@@ -39,6 +44,10 @@ pdf("class_frequences.pdf",height = 4,width = 13 )
 grid.table(TAB1)
 dev.off()
 
+#store index column "type of parent shoot"
+p=grep("from_$",colnames(lat))
+
+#table with info regerding parent type
 TAB2=cbind(as.data.frame(c("proleptic","sylleptic")),
           (as.data.frame(table(lat[lat$new_shoots!=0,c(c:s,p)][3]))[2]),#CHILDS from sylleptic(2) or proleptic(1) 
           (as.data.frame(table(lat[lat$fate=="M",p]))[2]),#M from sylleptic(2) or proleptic(1)
@@ -79,8 +88,8 @@ TAB_P$TOT_BUDS=NA
 
 for (i in 1:4) {
   I=TAB_P$proleptic_class[i]
-  tt=length(PRO[PRO$class==I,tot])#totbuds in parental
-  mv=length(grep(paste0("V","|","M"),PRO[PRO$class==I,tot]))#mv in parental
+  tt=length(PRO[PRO$class==I,f])#totbuds in parental
+  mv=length(grep(paste0("V","|","M"),PRO[PRO$class==I,f]))#mv in parental
   TAB_P[i,3]=mv
   TAB_P[TAB_P$proleptic_class==I,4]=tt
 }
@@ -114,8 +123,8 @@ TAB_P$TOT_BUDS=NA
 
 for (i in 1:4) {
   I=TAB_P$sylleptic_class[i]
-  tt=length(SYL[SYL$class==I,tot])#totbuds in parental
-  mv=length(grep(paste0("V","|","M"),SYL[SYL$class==I,tot]))#mv in parental
+  tt=length(SYL[SYL$class==I,f])#totbuds in parental
+  mv=length(grep(paste0("V","|","M"),SYL[SYL$class==I,f]))#mv in parental
   TAB_P[i,3]=mv
   TAB_P[TAB_P$sylleptic_class==I,4]=tt
 }
@@ -138,6 +147,7 @@ grid.table(par_child)
 dev.off()
 
 #CLASS FREQ  (#child/#parentinthatlength)
+nb=as.matrix(table(PRO$class,PRO$length.newshoots))
 prop=as.data.frame.matrix(round(prop.table(table(PRO$class,PRO$length.newshoots), margin=1)*100, digit=2))
 prop
 
@@ -150,6 +160,9 @@ text(x[1:2,]+0.2, t(prop[,1:2])+3.5, paste(t(prop[,1:2]),"%"), cex = 0.7)
 text(x[2,], t(prop[,2])+8.5, c("ab","b", "ab", "a"), cex = 0.7)
 dev.off()
 
-#has the medium lateral different proportions according to parental length?
-chisq.test(prop[,2])#i rami medi nonsono uguali per tutte le lunghezze
-a=pairwise_chisq_gof_test(prop[,2])#ci sono più medi nei VLO e meno nei ME
+#is sh child proportion different according to parental length?
+prop.test(x = nb[,1], rowSums(nb))
+pairwise.prop.test(x = nb[,1], rowSums(nb), p.adjust.method = "none")# VLo è diverso da me e da lo
+#is me child proportion different according to parental length?
+prop.test(x = nb[,2], rowSums(nb))
+pairwise.prop.test(x = nb[,2], rowSums(nb), p.adjust.method = "none")# VLo è diverso da me e da lo
