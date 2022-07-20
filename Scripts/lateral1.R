@@ -28,7 +28,6 @@ lnew=grep(".new",colnames(lat))
 #store index column "fate parent bud"
 f=grep("fate$",colnames(lat))
 
-
 #1Parental class
 TAB1=cbind(as.data.frame(table(unique(lat[c:s])[1])),#nb_parental shoot per class
            (as.data.frame(table(lat[c]))[2]),##nb_buds in parentals per class
@@ -157,7 +156,7 @@ cols<-brewer.pal(n=length(colnames(prop)),name="Set2")
 x<-barplot(t(prop),beside= T,col = cols, main="lateral child length from proleptic",xlab= "Parent length (proleptic)", ylab="% child length(es. #child/totalchildSh)", ylim=c(0,110))
 legend("top",horiz=T,inset=c(0,-0.02),xpd = TRUE, legend = rownames(t(prop)),fill = cols, cex=0.6)
 text(x[1:2,]+0.2, t(prop[,1:2])+3.5, paste(t(prop[,1:2]),"%"), cex = 0.7)
-text(x[2,], t(prop[,2])+8.5, c("ab","b", "ab", "a"), cex = 0.7)
+text(x[2,], t(prop[,2])+8.5, c("ab","b", "b", "a"), cex = 0.7)
 dev.off()
 
 #is sh child proportion different according to parental length?

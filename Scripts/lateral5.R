@@ -6,6 +6,7 @@ setwd(paste0(wd,"R/auto/Lateral/exploratory/"))
 library(dplyr)
 library(tibble)
 library(RColorBrewer)
+library(pals)
 library(tidyr)
 library(rstatix)
 
@@ -94,7 +95,7 @@ t=prop.table(r,margin=1)*100
 #graph
 png("5c.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
-cols<-brewer.pal(n=length(colnames(t(r[1:16,]))),name="Set3")
+cols<-rev(watlington(n=length(colnames(t(r[1:16,])))))
 x<-barplot(t(r[1:16,]),col = cols,main="combinations of laterals from sylleptic buds", xlab= "Rank nodes of parental", ylab="# of child class")
 legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(r[1:16,])),fill = cols, cex=0.6)
 dev.off()
@@ -102,7 +103,7 @@ dev.off()
 #graph5b
 png("5d.png",width=1200, height=900, res=150)# save plot
 par(mar = c(5, 5, 4, 10))
-cols<-brewer.pal(n=length(colnames(t[1:16,])),name="Set3")
+cols<-rev(watlington(n=length(colnames(t(r[1:16,])))))
 x<-barplot(t(t[1:16,]),col = cols,main="combinations of laterals from sylleptic buds", xlab= "Rank nodes of parental", ylab="% of child class", ylim=c(0,100))
 legend("topright",inset=c(-0.2,-0.15),xpd = TRUE, legend = rownames(t(t[1:16,])),fill = cols, cex=0.6)
 dev.off()

@@ -27,9 +27,4 @@ for (i in 1:(nrow(bud)+1)) {
   }
 }
 
-lat=bud[bud$position=="LATERAL",]
-ap=bud[bud$position=="AP",]
-
-write.csv(bud, "auto/bud_level_FINAL.csv", row.names = F)
-write.csv(lat, "auto/mtp use/bud_level_LATERALS.csv", row.names = F)
-write.csv(ap, "auto/mtp use/bud_level_APICALS.csv", row.names = F)
+write.csv(bud, "auto/mtp use/bud_level_LATERALS.csv", row.names = F)

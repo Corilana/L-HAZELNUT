@@ -14,57 +14,34 @@ library(Hmisc)
 met=read.csv(paste0(wd, "DF/auto/mtp use/met_level_develop_lateralbuds.csv"))
 #store as a variable the column with the sylleptic info
 s=grep("shoot_type",colnames(met))
-#rename sylleptic as 1 and proleptic as 0
-met[met$shoot_type=="SYLLEPTIC",s]=1
-met[met$shoot_type=="PROLEPTIC",s]=0
-#transform in numeric the info of sylleptic/proleptic
-met$shoot_type=as.numeric(met$shoot_type)
+#put factor proleptic or sylleptic
+met$shoot_type=as.factor(met$shoot_type)
+met$shoot_type=relevel(met$shoot_type, "SYLLEPTIC")
+
 #subset df for sylleptic
-SYL_met_scale=met[met$shoot_type==1,]#df at bud scale of buds in sylleptic shoots
+SYL_met_scale=met[met$shoot_type=="SYLLEPTIC",]#df at bud scale of buds in sylleptic shoots
 #change columns names to not make confusion
 a=grep("^Length$", names(SYL_met_scale))
 b=grep("^Length.", names(SYL_met_scale))
 c=grep("rank_", names(SYL_met_scale))
 d=grep("distance_abs", names(SYL_met_scale))
 e=grep("tot_", names(SYL_met_scale))
-f=grep("n_lat", names(SYL_met_scale))
-colnames(SYL_met_scale)[c(a,b,c,d,e,f)]=c("parent_length_cm",
+colnames(SYL_met_scale)[c(a,b,c,d,e)]=c("parent_length_cm",
                                "parent_length_nodes",
                                "parent_rank_node",
                                "distance",
-                               "tot_buds_in_sylleptic",
-                               "m_v_in_sylleptic")
+                               "tot_buds_in_sylleptic")
 #REMOVING THE COUNTING OF CATKINS BECAUSE ALL SYLLEPTIC HAS CATKINS
-SYL_met_scale$m_v_in_sylleptic=SYL_met_scale$m_v_in_sylleptic-1
+SYL_met_scale$tot_buds_in_sylleptic=SYL_met_scale$tot_buds_in_sylleptic-1
 #parameters: length(cm), rank, distance, length(node)
 #1: m+v buds ~ parent_length_cm+parent_rank_node+distance+parent length(node)?####
-glm_box1=glm(m_v_in_sylleptic~parent_length_cm+parent_rank_node+distance+parent_length_nodes,family = "poisson",data = SYL_met_scale)
+glm_box1=glm(tot_buds_in_sylleptic~parent_length_cm+parent_rank_node+distance+parent_length_nodes,family = "poisson",data = SYL_met_scale)
 summary(glm_box1)#
 #2: m+v buds ~ parent_length_cm+parent_rank_node+distance?####
-glm_box1=glm(m_v_in_sylleptic~parent_length_cm+parent_rank_node+distance,family = "poisson",data = SYL_met_scale)
+glm_box1=glm(tot_buds_in_sylleptic~parent_length_cm+parent_rank_node+distance,family = "poisson",data = SYL_met_scale)
 summary(glm_box1)
-#null model
-null_1=glm(m_v_in_sylleptic~parent_length_cm+distance+1,family = "poisson",data = SYL_met_scale)
-summary(null_1)
-#difference: real_aic-null_aic
-dif=glm_box1$aic-null_1$aic
-#new df
-met_nul=SYL_met_scale
-#empty df
-df=data.frame(matrix(nrow=0, ncol=0))
-# #permuting 10.000 times
-# for (i in 1:10000) {
-#   met_nul$parent_rank_node=sample(SYL_met_scale$parent_rank_node)
-#   perm=glm(m_v_in_sylleptic~parent_length_cm+parent_rank_node+distance,family = "poisson",data = met_nul)
-#   a=perm$aic-null_1$aic
-#   b=a<dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
-#   r=cbind(i,a, b)
-#   df=rbind(df,r)
-# }
-# #variable for how many times perm_aic-null_aic was < of real_aic-null_aic
-# better_perm=length(which(df$b==1))
 #3: m+v buds ~ parent_length_cm+distance?####
-glm_box1=glm(m_v_in_sylleptic~parent_length_cm+distance,family = "poisson",data = SYL_met_scale)
+glm_box1=glm(tot_buds_in_sylleptic~parent_length_cm+distance,family = "poisson",data = SYL_met_scale)
 summary(glm_box1)#yes
 # #null model
 # null_1=glm(m_v_in_sylleptic~parent_length_cm+1,family = "poisson",data = SYL_met_scale)
@@ -86,6 +63,7 @@ summary(glm_box1)#yes
 # }
 # #variable for how many times perm_aic-null_aic was < of real_aic-null_aic
 # better_perm=length(which(df$b==1))#times better perm!!!
+
 #graps
 #real data
 df=data.frame(parent_length_cm=seq(1,max(SYL_met_scale$parent_length_cm),length.out = length(unique(SYL_met_scale$parent_length_cm))))
@@ -105,7 +83,7 @@ colnames(df)[8:13]=seq(0,10, by = 2)
 #because this graph is difficoult to interpret, plot mean value with se for each length
 nline=length(unique(sort(SYL_met_scale$parent_length_cm)))
 #store variable 
-mv=grep("m_v", colnames(SYL_met_scale))
+mv=grep("tot", colnames(SYL_met_scale))
 #new df
 dt=met[0,0]
 #for loop to store mean and se
@@ -126,38 +104,38 @@ for (i in 1:nline) {
   dt=rbind(dt,d)
 }
 #graph
-png("2_S.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=4,name="Set2")[3:4]
-rbPal <- brewer.pal(n=6, name="Set1")
-with(dt, plot(dt$av~dt$L,
-                         pch=19,col = cols[1],
-                         main="average+-(se)_m+v buds in sylleptic vs parent_length(cm)",
-                         xlab= "parent_length(cm)",
-                         ylab="average+-(se) m+v buds",
-              ylim=c(0,7)))
-with(arrows(x0 = dt$L,                           # Add error bars
-       y0 = dt$av + dt$se,
-       y1 = dt$av - dt$se,
-       angle = 90,
-       code = 3,
-       length = 0.05,
-       col=cols[1]))
-for (i in 1:length(grep("[0-9]", colnames(df)))) {
-  t=grep("[0-9]", colnames(df))[i]
-  with(df,lines(df[,t]~df$parent_length_cm,col=rbPal[i], lwd=3))
-}
-legend("top",
-       horiz=T,
-       xpd = TRUE,c("real", "dist=0","dis=2","dis=4","dis=6","dis=8","dis=10"),
-       pch = c(19,NA,NA,NA,NA,NA,NA),lty=c(NA,1,1,1,1,1,1), lwd=5,
-       col = c(cols[1], rbPal),
-       cex=0.6)
-dev.off()
+# png("2_S.png",width=1200, height=900, res=150)# save plot
+# cols<-brewer.pal(n=4,name="Set2")[3:4]
+# rbPal <- brewer.pal(n=6, name="Set1")
+# with(dt, plot(dt$av~dt$L,
+#                          pch=19,col = cols[1],
+#                          xlab= "parent length(cm)",
+#                          ylab="vegetative + mixed buds",
+#               ylim=c(0,7)))
+# with(arrows(x0 = dt$L,                           # Add error bars
+#        y0 = dt$av + dt$se,
+#        y1 = dt$av - dt$se,
+#        angle = 90,
+#        code = 3,
+#        length = 0.05,
+#        col=cols[1]))
+# for (i in 1:length(grep("[0-9]", colnames(df)))) {
+#   t=grep("[0-9]", colnames(df))[i]
+#   with(df,lines(df[,t]~df$parent_length_cm,col=rbPal[i], lwd=3))
+# }
+# legend("top",
+#        horiz=T,
+#        xpd = TRUE,c("real", "dist=0","dis=2","dis=4","dis=6","dis=8","dis=10"),
+#        pch = c(19,NA,NA,NA,NA,NA,NA),lty=c(NA,1,1,1,1,1,1), lwd=5,
+#        col = c(cols[1], rbPal),
+#        cex=0.6)
+# dev.off()
+
 #graph
 #because this graph is difficoult to interpret, plot mean value with se for each length
 nline=length(unique(sort(SYL_met_scale$parent_length_cm)))
 mline=length(unique(sort(SYL_met_scale$distance)))
-mv=grep("m_v", colnames(SYL_met_scale))
+mv=grep("tot", colnames(SYL_met_scale))
 dt=met[0,0]
 #for loop to store mean and se
 for (i in 1:nline) {
@@ -200,10 +178,9 @@ cols<-brewer.pal(n=4,name="Set2")[3:4]
 rbPal <- brewer.pal(n=6, name="Set1")
 with(dt, plot(dt$av~dt$L,
               pch=19,col = rbPal[factor(dt$D)],
-              main="average+-(se)_m+v buds in sylleptic vs parent_length(cm)",
-              xlab= "parent_length(cm)",
-              ylab="average+-(se) m+v buds",
-              ylim=c(0,7)))
+              xlab= "bearer shoot length(cm)",
+              ylab="vegetative + mixed buds",
+              ylim=c(0,8)))
 with(arrows(x0 = dt$L,                           # Add error bars
             y0 = dt$av + dt$se,
             y1 = dt$av - dt$se,
@@ -217,40 +194,19 @@ for (i in 1:length(grep("[0-9]", colnames(df)))) {
 }
 legend("top",
        horiz=T,
-       xpd = TRUE,c("real", "dist=0","dis=2","dis=4","dis=6","dis=8","dis=10"),
-       pch = c(19,NA,NA,NA,NA,NA,NA),lty=c(NA,1,1,1,1,1,1), lwd=5,
-       col = c(cols[1], rbPal),
+       xpd = TRUE,c("distance=0","distance=2","distance=4","distance=6","distance=8","distance=10"),
+       pch = c(NA,NA,NA,NA,NA,NA),lty=c(1,1,1,1,1,1), lwd=5,
+       col = c(rbPal),
        cex=0.6)
 dev.off()
 #1: m+v buds ~ parent_length_cm+parent_rank_node+normalized_distance+parent length(node)?####
-glm_box1=glm(m_v_in_sylleptic~parent_length_cm+parent_rank_node+normal_distance+parent_length_nodes,family = "poisson",data = SYL_met_scale)
+glm_box1=glm(tot_buds_in_sylleptic~parent_length_cm+parent_rank_node+normal_distance+parent_length_nodes,family = "poisson",data = SYL_met_scale)
 summary(glm_box1)#yes
 #2: m+v buds ~ parent_length_cm+parent_rank_node+distance?####
-glm_box1=glm(m_v_in_sylleptic~parent_length_cm+parent_rank_node+normal_distance,family = "poisson",data = SYL_met_scale)
+glm_box1=glm(tot_buds_in_sylleptic~parent_length_cm+parent_rank_node+normal_distance,family = "poisson",data = SYL_met_scale)
 summary(glm_box1)#yes
-# #null model
-# null_1=glm(m_v_in_sylleptic~parent_length_cm+normal_distance+1,family = "poisson",data = SYL_met_scale)
-# summary(null_1)
-# #difference real aic null aic
-# dif=glm_box1$aic-null_1$aic
-# #new df
-# met_nul=SYL_met_scale
-# #empty df
-# df=data.frame(matrix(nrow=0, ncol=0))
-# #permuting 10.000 timse
-# for (i in 1:10000) {
-#   met_nul$parent_rank_node=sample(SYL_met_scale$parent_rank_node)
-#   perm=glm(m_v_in_sylleptic~parent_length_cm+parent_rank_node+normal_distance,family = "poisson",data = met_nul)
-#   a=perm$aic-null_1$aic
-#   b=a<dif#se a(diff con il modello permutato)>diff(diff con modello reale) allora significa che la permutazione spiega meglio il modello
-#   r=cbind(i,a, b)
-#   df=rbind(df,r)
-# }
-# #variable for how many times perm_aic-null_aic was < of real_aic-null_aic
-# better_perm=length(which(df$b==1))#times better perm!!!
-
 #3: m+v buds ~ parent_length_cm+distance?####
-glm_box1=glm(m_v_in_sylleptic~parent_length_cm+normal_distance,family = "poisson",data = SYL_met_scale)
+glm_box1=glm(tot_buds_in_sylleptic~parent_length_cm+normal_distance,family = "poisson",data = SYL_met_scale)
 summary(glm_box1)#
 #create a sequence with random numbers between 1 and maximum length (72cm)
 df=data.frame(parent_length_cm=seq(1,max(SYL_met_scale$parent_length_cm),length.out = length(unique(SYL_met_scale$parent_length_cm))))
@@ -270,7 +226,7 @@ colnames(df)[8:13]=seq(0,0.5, by = (0.5/5))
 
 #because this graph is difficoult to interpret, plot mean value viwht se for each length
 nline=length(unique(sort(SYL_met_scale$parent_length_cm)))
-mv=grep("m_v", colnames(SYL_met_scale))
+mv=grep("tot_buds_in_sylleptic", colnames(SYL_met_scale))
 dt=met[0,0]
 
 for (i in 1:nline) {

@@ -34,7 +34,7 @@
                                               "tot_buds")
     #check dataset
     str(PROL_bud_scale)
-    #transfrom as factor "fate"
+    #transform as factor "fate"
     PROL_bud_scale$fate=as.factor(PROL_bud_scale$fate)
     #set "V" as the base factor
     PROL_bud_scale$fate=relevel(PROL_bud_scale$fate, "V")
@@ -44,17 +44,8 @@
     # The dependent variable is "fate"
     #1: parent length(cm)+median_distance+ rank_node+length(node)####
     #multinomial function
-    test=multinom(fate~length_cm+median_distance+rank_node+length_nodes,data = PROL_bud_scale)
+    test=multinom(fate~length_cm+distance+rank_node+length_nodes,data = PROL_bud_scale)
     summary(test)$AIC
-    exp(coef(test))
-    #computing p value
-    z <- summary(test)$coefficients/summary(test)$standard.errors
-    p <- (1 - pnorm(abs(z), 0, 1)) * 2
-    p #--> eliminate length_nodes
-    
-    #2: parent lenght(cm)+median_distance+ rank_node####
-    test=multinom(fate~length_cm+median_distance+rank_node,data = PROL_bud_scale)
-    summary(test)
     exp(coef(test))
     #computing p value
     z <- summary(test)$coefficients/summary(test)$standard.errors
@@ -251,14 +242,6 @@
              ylab="proportion of B,M,V", ylim = c(0,1))
     #  p_rank_node = seq(1,max(data.poly$rank_node))
     
-    df=data.frame(rank_node=p_rank_node,
-                  rank_node0.5=p_rank_node**0.5,
-                  rank_node2=p_rank_node**2,
-                  rank_node3=p_rank_node**3,
-                  rank_node4=p_rank_node**4)
-    pred=cbind(df,predict(test, newdata = df, "probs", se=T))
-    pred
-    #real value
     tab=as.matrix(prop.table(table(data.poly$rank_node,data.poly$fate),1))
     tab
     #graph
@@ -267,11 +250,11 @@
     cols<-brewer.pal(n=3,name="Set2")
     r=barplot(t(tab),
               col = cols, names.arg = row.names(tab),
-              xlab = "rank node",
-              ylab="proportion of B,M,V", ylim = c(0,1))
-    with(pred, lines(x = p_rank_node,pred$V,lwd=5, col="green"))
-    with(pred, lines(x = p_rank_node,pred$B,lwd=5, col="orange"))
-    with(pred, lines(x = p_rank_node,pred$M,lwd=5, col="blue"))
+               main="frequence of B,M,V(#B/tot buds)", xlab = "rank_node",
+               ylab="%", ylim = c(0,1))
+with(pred, lines(x = r,pred$V,lwd=5, col="black"))
+with(pred, lines(x = r,pred$B,lwd=5, col="blue"))
+with(pred, lines(x = r,pred$M,lwd=5, col="red"))
     legend("topright",
            inset=c(-0.13,0),xpd = TRUE,
            title = "bud fate",

@@ -16,6 +16,7 @@ colb=grep("^b$",colnames(ann))#column blind
 
 ann=dplyr::mutate(ann, "tot_buds_m+v+b+c"=NA, .after = b)#new column
 
+
 for (i in 1:nline) {#making the sum of nodes, #catkins,mixed,veg,blind,nuts,cluster per shoot
   ann[i,colnode]=sum(ann[i,grep("node.[0-9]*$", colnames(ann))]>0, na.rm=TRUE)#node
   ann[i,colc]=sum(ann[i,grep("c[^a-z][0-9]*$", colnames(ann))]>0, na.rm=TRUE)#catkins
@@ -40,4 +41,3 @@ for (i in 1:nline) {#adding the number of tree to the shoots df
 }
 
 write.csv(ann, "auto/2020shoot_level.csv", row.names = F)
-

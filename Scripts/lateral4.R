@@ -22,7 +22,7 @@ c=grep("^c$", colnames(proleptic))
 v=grep("^v$", colnames(proleptic))
 m=grep("^m$", colnames(proleptic))
 b=grep("^b$", colnames(proleptic))
-nl=grep("^n_la", colnames(proleptic))
+nl=grep("tot_", colnames(proleptic))
 
 for (q in 1:nrow(proleptic)) {
   if (proleptic[q,c]==1) {
@@ -35,7 +35,7 @@ for (q in 1:nrow(proleptic)) {
 colnames(proleptic)[c]="sylleptic"#CHANGE THE name of COLUMN "C" WITH "SYLLEPTIC"
 
 #1:multiple buds ~ rank node in prolepotic?####
-ranksyl=table(proleptic$rank_node, proleptic$n_lateral_buds)
+ranksyl=table(proleptic$rank_node, proleptic$tot_buds)
 
 #graph
 png("4.png",width=1200, height=900, res=150)# save plot
@@ -112,8 +112,7 @@ dev.off()
 
 #4: multiple buds ~ rank node in sylleptic?####
 sil=subset(met, shoot_type=="SYLLEPTIC")#dataset solo con i sylleptic 
-
-ranksi=table(sil$rank_node, sil$n_lateral_buds)
+ranksi=table(sil$rank_node, sil$tot_buds)
 
 #graph
 png("4d.png",width=1200, height=900, res=150)# save plot

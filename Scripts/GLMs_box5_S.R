@@ -11,6 +11,7 @@ library(dplyr)
 library(RColorBrewer)
 library(effects)
 library(plotrix)
+library(fitdistrplus)
 
 #import dataset
 lat=read.csv(paste0(wd,"DF/auto/mtp use/bud_level_LATERALS.csv"))
@@ -24,71 +25,48 @@ SYL_bud_scale$m_v=SYL_bud_scale$m_v-1
 MV=SYL_bud_scale[(SYL_bud_scale$fate=="M"|SYL_bud_scale$fate=="V")&SYL_bud_scale$new_shoots!=0,]
 MV$fate=as.factor(MV$fate)
 MV$fate=relevel(MV$fate, "V")
-str(MV)
 
-colnames(MV)[24]="nodes"
-#plot
-plot(density(MV$nodes))
+#is,length depending on bud fate?
+mod=glm(MV$length2yo.cm.~MV$fate)
+summary(mod)#no
 
-#1:length~length+lengthnode+rank+distance_abs+m_v+fate
-glm_box1 = glm(nodes~parent_length_cm*fate+parent_length_node*fate+parent_rank_node*fate+distance_abs*fate+m_v*fate, data = MV, family = "gaussian")
-summary(glm_box1)
-#2:length~length+lengthnode+rank+distance_abs+fate
-glm_box1 = glm(nodes~parent_length_cm*fate+parent_length_node*fate+parent_rank_node*fate+distance_abs*fate, data = MV, family = "gaussian")
-summary(glm_box1)
-#3:length~length+lengthnode+rank+distance_abs+fate
-glm_box1 = glm(nodes~parent_length_cm*fate+parent_length_node+parent_rank_node+distance_abs, data = MV, family = "gaussian")
-summary(glm_box1)
-#4:length~lengthnode+rank+distance_abs+fate
-glm_box1 = glm(nodes~parent_length_node+parent_rank_node+distance_abs, data = MV, family = "gaussian")
-summary(glm_box1)
-#5:length~rank+distance_abs+fate
-glm_box1 = glm(nodes~parent_rank_node+distance_abs, data = MV, family = "gaussian")
-summary(glm_box1)
-#6:length~distance_abs+fate
-glm_box1 = glm(nodes~distance_abs, data = MV, family = "gaussian")
-summary(glm_box1)
-#graph
-plot(allEffects(glm_box1))
-#graph
-png("5_S.png",width=1200, height=900, res=150)# save plot
-with(plot(allEffects(glm_box1)))
-dev.off()
-#create table with mean and se of number of nodes per distance
-dis=sort(unique(MV$distance_abs))
-df=lat[0,0]
-for (i in dis) {
-  av=mean(MV[MV$distance_abs==i,"nodes"])
-  se=std.error(MV[MV$distance_abs==i,"nodes"])
-  av_se=cbind(i,av,se)
-  df=rbind(df,av_se)
-}
-colnames(df)[1]="distance_abs"
-df$pred=predict(glm_box1,
-                newdata = data.frame(distance_abs=df$distance_abs), "response")
-#grapg
-png("52_S.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=4,name="Set2")[3:4]
-r=plot(df$distance_abs,df$av,
-       col = cols[1],pch=19,
-       xlab="Distance from median node",
-       main="average #node children vs distance",
-       ylab="average #node children",
-       ylim=c(0,7))
-with(arrows(x0 = df$distance_abs,# Add error bars
-            y0 = df$av + df$se,
-            y1 = df$av - df$se,
-            angle = 90,
-            code = 3,
-            length = 0.05,
-            col=cols[1]))
-with(lines(df$distance_abs,df$pred, col=cols[2], lwd=3))
-dev.off()
+#thus, df will be keept together
+#length distribution
+#plot density distribution to understand
+plot(density(MV$length2yo.cm.))
+qqnorm(MV$length2yo.cm.)#NON è NORMALE
+qqline(MV$length2yo.cm., col = "steelblue", lwd = 2)
+shapiro.test(MV$length2yo.cm.)#NON è NORMALE
 
-#info su length_new shoots in sylleptic
-mean(MV$nodes)
-std.error(MV$nodes)
+#che distribuzione è?
+descdist(MV$length2yo.cm., discrete = FALSE)
 
-#length new shoots is a constant of mean+- se
-boxplot(MV$nodes)
+fit.weibull<-fitdist(MV$length2yo.cm., "weibull")
+fit.gamma<-fitdist(MV$length2yo.cm., "gamma")
+
+plot(fit.weibull)
+plot(fit.gamma)
+
+fit.weibull$aic
+fit.gamma$aic
+#gamma has the best aic
+q=data.frame("x"=seq(0,max(MV$length2yo.cm.), by=0.1),
+           "y"=dgamma(seq(0,max(MV$length2yo.cm.), by=0.1),
+                      shape = fit.gamma$estimate[1],
+                      rate = fit.gamma$estimate[2]))
+#histogram
+h=hist(MV$length2yo.cm.,breaks = 10)
+h$counts <- h$counts / sum(h$counts)
+
+# #graph
+# png("51_S.png",width=1200, height=900, res=150)# save plot
+# with(MV, plot(h, main="from M or V(gamma dist)",
+#               freq=T,
+#               ylim=c(0,0.5),
+#               ylab="relative frequency",
+#               col="grey",
+#               xlab = "Length new shoots (cm)"))
+# with(q,lines(y~x, type="l", lwd=1.5))
+# dev.off()
+
 
