@@ -50,36 +50,7 @@ bud.level<-read.csv("bud_level_develop.csv")
 # ap_syl=newshot.level[newshot.level$from_sylleptic=="YES"&newshot.level$position=="AP",]
 # #yes there are. Thus, I need to extract from those sylleptic the bud the apical bud that generated the succession
 
-#SCRIPT TO CHECK IF SOME APICAL BUD IS IN A SYLLEPTIC####
-# #1_is that bud in a sillyptic shoot?
-# bud.level$from_sylleptic=NA
-# nline=length(bud.level$tesi)
-# 
-# for(i in 1:nline){
-#   if(bud.level$c[i]==1){
-#     bud.level$from_sylleptic[i]="YES"}
-#   else{bud.level$from_sylleptic[i]="NO"}
-#   
-# }
-# 
-# #2_is that bud at the highest node?
-# bud.level$position=NA
-# nline=length(bud.level$tesi)
-# 
-# for(i in 1:nline){
-#   s=bud.level$shoot[i]
-#   ra=grep("^ran", colnames(bud.level))
-#   max=max(bud.level[bud.level$shoot==s,ra])
-#   if(bud.level$rank_node[i]==max){
-#     bud.level$position[i]="AP"}
-#   else{bud.level$position[i]="LATERAL"}
-#   
-# }
-# 
-# SY=bud.level[bud.level$from_sylleptic=="YES"&bud.level$position=="AP",]
-
-
-#3_ create new df in wich each line is a single bud####
+#_create new df in wich each line is a single bud
 m.df=data.frame(matrix(ncol = 0, nrow=0))#create an empty dataframe
 v.df=m.df#create an empty dataframe
 c.def=m.df#create an empty dataframe
@@ -197,28 +168,10 @@ bud=bud[with(bud, order(shoot, rank_node, fate)), ]#make the same order so that 
 all.equal(bud$rank_node,new$rank1yo)#check if they are actually identical
 sacco=data.frame(matrix(nrow = 0, ncol = 0))
 sacco=cbind(bud, new[14:22])
+colnames(sacco)[c(27,28,29)]=paste0(colnames(sacco)[c(27,28,29)],".1")
 pieno=bud.level[bud.level$number_new_shoots==0,]#eliminiamo righe con nuovi germogli
 bud.level=rbind.fill(sacco,pieno)#unisci i df con germogli (sacco) e senza (pieno)
 bud.level=bud.level[with(bud.level, order(shoot, rank_node)), ]#order
-
-#write if that bud is apical or not
-bud.level$position="LATERAL"#scriviamo lateral di default e poi cambiamo gli apicali
-nshoot=length(unique(bud.level$shoot))
-pos=grep("position", colnames(bud.level))#select position parental
-l=grep("length2yo", colnames(bud.level))#select length new shoots
-n=grep("X.nodes", colnames(bud.level))#select nodes new shoots
-r=grep("rank_", colnames(bud.level))#select rank node parental
-
-for (i in 1:nshoot) {
-  p=sort(unique(bud.level$shoot))[i]#shoot
-  m=max(bud.level[bud.level$shoot==p,r], na.rm = T)#max node
-  len=max(bud.level[bud.level$shoot==p&bud.level$rank_node==m&bud.level$number_new_shoots>0,l], na.rm = T)#max length new shoots
-  nod=max(bud.level[bud.level$shoot==p&bud.level$rank_node==m&bud.level$number_new_shoots>0,n], na.rm = T)#max nodes new shoots
-  bud.level[bud.level$shoot==p&bud.level$rank_node==m&bud.level$length2yo.cm.==len&bud.level$X.nodes2yo==nod&bud.level$number_new_shoots>0,pos]="AP"
-}
-
-#CHECK IF SOME APICAL IS IN SYLLEPTIC
-SY=bud.level[bud.level$position=="AP"&bud.level$fate=="C",]#CE NE SONO SOLO DUE EH VA BE
 
 #changing NUMBER of new shoots to 0 (not developed) or 1 (developed)
 colnames(bud.level)[tot_b]=c("new_shoots")

@@ -2,11 +2,12 @@
 wd="C:/Users/franc/Google Drive/PhD/Deruta/"
 setwd(paste0(wd,"R/auto/Lateral/glm"))
 
-ann=read.csv(paste0(wd,"DF/auto/mtp use/2020shoot_level_DEVELOPED_fin.csv"))
+ann=read.csv(paste0(wd,"DF/auto/mtp use/shoot_level_develop_lateralbuds.csv"))
 
 #relation:length_cm~length_nodes####
 glm_box1=nls(node~a*(Length^b),data = ann,start = c(a=1, b=0.5))
 summary(glm_box1)
+
 #real
 df=data.frame(Length=seq(1,max(ann$Length),by=1))
 #predicted

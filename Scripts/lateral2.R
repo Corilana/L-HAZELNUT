@@ -61,9 +61,9 @@ cols<-brewer.pal(n=4,name="Set2")
 x=barplot(qnew,col = cols,beside = T,
           names.arg = colnames(qnew), main="frequence lateral buds class in proleptic parental", xlab = "parent class length", ylab="%", ylim = c(0,100))
 legend("topright",inset=c(0,0),xpd = TRUE, legend = rownames(qnew),fill = cols, cex=0.8)
-text(x[1,], qnew[1,]+5, c("a","a","a","b"), col = cols[1])
+text(x[1,], qnew[1,]+5, c("ab","a","a","b"), col = cols[1])
 text(x[2,], qnew[2,]+5, c("a","ab","ab","a"),col = cols[2])
-text(x[3,], qnew[3,]+5, c("ab","b","a","a"),col = cols[3])
+text(x[3,], qnew[3,]+5, c("b","a","a","a"),col = cols[3])
 text(x[4,], qnew[4,]+5, c("a","a","b","b"),col = cols[4])
 dev.off()
 
@@ -98,7 +98,7 @@ png("2a.png",width=1200, height=900, res=150)# save plot
 cols<-brewer.pal(n=4,name="Set2")
 x=barplot(q1new,col = cols,beside = T, names.arg = colnames(q1new), main="frequence lateral buds/sylleptic in proleptic parental", xlab = "buds/sylleptic", ylab="%", ylim = c(0,100))
 text(x,q1new+3 , paste0(round(q1new, digit=2),"%"), cex = 1)
-text(x,q1new+10, c("c","b","a","d"), cex = 1)
+text(x,q1new+10, c("b","a","a","c"), cex = 1)
 dev.off()
 
 #sono differenti?

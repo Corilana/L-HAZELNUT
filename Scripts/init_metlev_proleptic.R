@@ -29,12 +29,10 @@ b=grep("^Length.", names(PROL_met_scale))
 c=grep("^rank", names(PROL_met_scale))
 d=grep("medi", names(PROL_met_scale))
 e=grep("tot_buds$", names(PROL_met_scale))
-f=grep("n_lat", names(PROL_met_scale))
-colnames(PROL_met_scale)[c(a,b,c,d,e,f)]=c("length_cm",
+colnames(PROL_met_scale)[c(a,b,c,d,e)]=c("length_cm",
                                            "length_nodes",
                                            "rank_node",
                                            "distance",
-                                           "tot_buds",
-                                           "m_v")
+                                           "tot_buds")
 #rimuoviamo blind buds from the counting of m+v
-PROL_met_scale$m_v=PROL_met_scale$m_v-PROL_met_scale$b#rimuoviamo blind buds from the counting of m+v
+PROL_met_scale$tot_buds=PROL_met_scale$tot_buds-PROL_met_scale$b#rimuoviamo blind buds from the counting of m+v

@@ -108,14 +108,3 @@ colnames(TAB_SYL)[8:11]=c("%C","%V","%M","%B")
 pdf("buds_in_syl_shoots~rank.pdf",height = 8,width = 10 )
 grid.table(TAB_PRO)
 dev.off()
-
-#graph
-png("3a.png",width=1200, height=900, res=150)# save plot
-par(mar=c(5,5,5,4))
-col=brewer.pal(n=4,name="Set1")
-with(TAB_SYL[1:16,], plot(`%C`~rank_node, pch=15, cex=1.2,col=col[1],ylim = c(0,200), main="frequence buds in syllepotic", xlab="rank nodes of proleptic", ylab="%", type="o"))
-with(TAB_SYL[1:16,], points(`%V`~rank_node, pch=16, col=col[2],cex=1.2,type="o"))
-with(TAB_SYL[1:16,], points(`%M`~rank_node, pch=17, col=col[3], cex=1.2,type="o"))
-with(TAB_SYL[1:16,], points(`%B`~rank_node, pch=18, col=col[4], cex=1.2,type="o"))
-legend("topleft", legend=c("%C", "%V", "%M", "%B"), lwd=3, cex= 0.8, col=col)
-dev.off()

@@ -59,26 +59,9 @@ n=length(PROL_met_scale[,mv])
 #standard error
 se=round(std.error(PROL_met_scale[,mv]), digits=2)
 
-#grapg
-png("2n_p.png",width=1200, height=900, res=150)# save plot
-cols<-brewer.pal(n=4,name="Set2")[3:4]
-r=barplot(av,
-             col = cols[1],
-             main="average #buds(b,v,m) vs rank node",
-             ylab="average #buds(b,v,m)+-se",
-             ylim=c(0,2))
-with(arrows(x0 = r,                           # Add error bars
-            y0 = av + se,
-            y1 = av - se,
-            angle = 90,
-            code = 3,
-            length = 1,
-            col=cols[1]))
-text(x = r, y = 1.3,paste0(av, "+-", se))
-dev.off()
-  
 #1: tot_buds ~ parent #null model
 glm_box1=glm(tot_buds~1,family = "poisson",data = PROL_met_scale)
 summary(glm_box1)
 
 plot(glm_box1)
+
