@@ -11,3 +11,9 @@
   * JB (18/03/2022): why not to include the total number of buds (or shoots) when modelling the proportions of V/M?
   Please remind what "new_shoots" are when comparing models to predict them (shoots of branching order 2 bursting or not?)
   There has been a suggestion by Fred to colour points consistently with lines in Poisson GLMs with 2 predictors
+  * JB (30/06/2022): botanically, the distal shoot is not a succession but a lateral, since the apical bud will die at the end of the growth period.
+  Proportion of B, M, V depending on rank node: try quadratic terms?
+  Use Shapley indices to determine which variables have the larger effects.
+  Number of new shoots: modeled with Poisson or overdispersed Poisson / negative binomial (not binomial)?
+  
+  
