@@ -10,13 +10,13 @@ seed(SEED)
 trunklength = 70.
 mixedinternodelength = 0.5
 
-#function for the relationship between length in cm and length in nodes
+#function for the relationship between length in cm and length in 
 def shootnbnodesfromlength(length):
   return int (1.81062*(length**0.57449))
 
-#probability to have sylleptic (box1)
+#probability to have sylleptic (box1)SS
 def has_sylleptic_proba(rank_to_mid):
-   ec = exp(-0.4315-0.2672*rank_to_mid)
+   ec = exp(-0.50517-0.27057*rank_to_mid)
    proba = ec/(1+ec)
    return proba
 
@@ -28,7 +28,7 @@ def has_sylleptic(rank_to_mid):
 #SYLLEPTIC
 #number of buds inside sylleptic shoots(box2)
 def nb_mv_in_sylleptic_lambda(length, rank_to_mid):
-  latent = 0.613354 + 0.016119 * length - 0.132113 * rank_to_mid
+  latent = 0.603063 + 0.016648 * length - 0.137954 * rank_to_mid
   return exp(latent)
 
 #poisson function for number of buds inside sylleptic shoots(box2)
@@ -49,9 +49,10 @@ def burst_in_sylleptic(nb_siblings_V, nb_siblings_M, fate='V'):
    proba = burst_in_sylleptic_proba(nb_siblings_V, nb_siblings_M, fate)
    return bool(binomial(1,proba,1)[0])
  
-#number of nodes of new shoots(box5)
-def nb_nodes_new_in_sylleptic(distance):  
-  return int(3.35595+0.16892*distance)
+#gamma dist number of nodes of new shoots(box5)
+def length_new_in_sylleptic():  
+  len=numpy.random.gamma(shape=2.376818, scale=1/1.197655)
+  return len
 
 #PROLEPTIC
 
@@ -159,10 +160,10 @@ ProlBud(length, burstdate, mixed):#the starter shoot is proleptic
     length=length_apicals(nbnodes)
     nproduce /(180) Internode(internodelength)
     if fate_apical==True:
-      nproduce [,(5)ProlBud(length,burstdate+1,True)]#se apicale è misto
+      nproduce [,(6)ProlBud(length,burstdate+1,True)]#se apicale è misto
     else:
-      nproduce [,(6)ProlBud(length,burstdate+1,False)]#se apicale è vegetativo
-  if mixed == True:
+      nproduce [,(5)ProlBud(length,burstdate+1,False)]#se apicale è vegetativo
+    if mixed == True:
       nproduce Nuts(burstdate+1) #l'anno dopo nocciola
       
 Syl(length, nb_mv,distance, burstdate):
@@ -180,21 +181,17 @@ Syl(length, nb_mv,distance, burstdate):
         nproduce [-(60)f(0.5),(6)ProlBud(internodelength,burstdate+1,True)]
     nproduce /(180) Internode(internodelength)Catkin
     
-Nuts(burstdate):
-  if burstdate <= currenttime:
-    nproduce nut
-
 interpretation:
 
 Info --> [@2D @M(0.8,0.8) @L(str(currenttime)+" "+str(getIterationNb()))]
 
 Internode(l) --> ,(2)_(0.5)F(l,0.5)f(0.01)
 
-nut --> _(0.2)F(1,0.22),(3)f(0.5)@O(0.5)
+Nuts(burstdate) -->_(0.2)F(1,0.22),(1)f(0.5)@O(0.5)
 
 Leaf -->&(30)_(0.2),(2)F(1,0.22)@o(0.5)
 
-Catkin --> [_(0.3),(4) @Tp(0,0,-1) @Ts(0.2) nF(5,0.2)]
+Catkin --> _(0.3),(4) @Tp(0,0,-1) @Ts(0.2) nF(5,0.2)
 BlindNode()-->f(0.01)
 ProlBud(length, burstdate, mixed)-->@O(0.12)
 endlsystem

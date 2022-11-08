@@ -1,0 +1,17 @@
+4_propMVB_PRO
+Call:
+multinom(formula = fate ~ rank_node + rank_node0.5 + rank_node2 + 
+    rank_node3 + rank_node4, data = data.poly)
+
+Coefficients:
+  (Intercept) rank_node rank_node0.5  rank_node2   rank_node3    rank_node4
+B   28.109405 44.244359  -66.9705830 -6.62976360  0.623165597 -0.0221203157
+M   -1.342972  0.140585    0.1448854  0.06661479 -0.008611708  0.0002449118
+
+Std. Errors:
+  (Intercept)    rank_node rank_node0.5  rank_node2  rank_node3   rank_node4
+B 0.000109542 0.0003324636 0.0001862083 0.001174367 0.003910554 4.197503e-04
+M 0.001084830 0.0040282153 0.0021051488 0.011534238 0.002073157 8.828395e-05
+
+Residual Deviance: 1458.388 
+AIC: 1482.388 

@@ -1,0 +1,28 @@
+6_new_shoots_length_PRO
+
+Call:
+glm(formula = length2yo.cm. ~ Length:fate + median_distance_norm:fate, 
+    family = "gaussian", data = MV.bud.PRO)
+
+Deviance Residuals: 
+   Min      1Q  Median      3Q     Max  
+-7.225  -1.206  -0.164   0.848  34.015  
+
+Coefficients:
+                           Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                1.252965   0.279536   4.482 8.72e-06 ***
+Length:fateV               0.067470   0.007356   9.172  < 2e-16 ***
+Length:fateM               0.039516   0.007517   5.257 1.99e-07 ***
+fateV:median_distance_norm 6.256609   0.537466  11.641  < 2e-16 ***
+fateM:median_distance_norm 1.455136   0.612001   2.378   0.0177 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for gaussian family taken to be 8.516455)
+
+    Null deviance: 7596.6  on 658  degrees of freedom
+Residual deviance: 5569.8  on 654  degrees of freedom
+AIC: 3288.7
+
+Number of Fisher Scoring iterations: 2
+

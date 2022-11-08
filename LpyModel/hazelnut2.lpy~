@@ -1,0 +1,249 @@
+#import library from python
+from numpy.random import *
+from math import *
+import random
+import numpy
+
+#variable to stop the random simulations
+seed(SEED)
+
+trunklength = 70.
+mixedinternodelength = 0.5
+
+#function for the relationship between length in cm and length in 
+def shootnbnodesfromlength(length):
+  return int (1.81062*(length**0.57449))
+
+#probability to have sylleptic (box1)SS
+def has_sylleptic_proba(rank_to_mid):
+   ec = exp(-0.50517-0.27057*rank_to_mid)
+   proba = ec/(1+ec)
+   return proba
+
+#binomial function for probability of having sylleptic(box1)
+def has_sylleptic(rank_to_mid):
+   proba = has_sylleptic_proba(rank_to_mid)
+   return bool(binomial(1,proba,1)[0])
+
+#SYLLEPTIC
+#number of buds inside sylleptic shoots(box2)
+def nb_mv_in_sylleptic_lambda(length, rank_to_mid):
+  latent = 0.603063 + 0.016648 * length - 0.137954 * rank_to_mid
+  return exp(latent)
+
+#poisson function for number of buds inside sylleptic shoots(box2)
+def nb_mv_in_sylleptic(length, rank_to_mid):
+  lambda_ = nb_mv_in_sylleptic_lambda(length, rank_to_mid)
+  return max(1,int(poisson(lambda_,1)[0]))
+
+#probability of bursting in sylleptic shoots (box4)
+def burst_in_sylleptic_proba(nb_siblings_V, nb_siblings_M, fate='V'):
+  latent = 1.4002 -0.2140*nb_siblings_M-0.6422*nb_siblings_V #we utilize just significant values
+  if fate == 'M': latent += -0.4511*nb_siblings_M +0.3876*nb_siblings_V
+  ec = exp(latent)
+  proba = ec/(1+ec)
+  return proba
+
+#binomial function for probability pf bursting inside sylleptic(box4)
+def burst_in_sylleptic(nb_siblings_V, nb_siblings_M, fate='V'):
+   proba = burst_in_sylleptic_proba(nb_siblings_V, nb_siblings_M, fate)
+   return bool(binomial(1,proba,1)[0])
+ 
+#gamma dist number of nodes of new shoots(box5)
+def length_new_in_sylleptic():  
+  len=numpy.random.gamma(shape=2.376818, scale=1/1.197655)
+  return len
+
+#PROLEPTIC
+
+#number of buds in proleptic shoots(box2)
+def nb_mvb_in_proleptic_lambda(rank):
+  latent =  0.011678 * rank 
+  return exp(latent)
+  
+#poisson function for number of buds inside sylleptic shoots(box2)
+def nb_mvb_in_proleptic(rank):
+  lambda_ = nb_mvb_in_proleptic_lambda(rank)
+  return max(1,int(poisson(lambda_,1)[0]))
+
+#bud type in proleptic shoots(box3)
+def bud_type_in_proleptic(rank):
+  name=["V","B","M"]
+  nb_mvb=nb_mvb_in_proleptic(rank)
+  coefs = [0.,28.109405+44.244359*rank-66.9705830*rank**(0.5)-6.62976360*rank**(2)+0.623165597*rank**(3)-0.0221203157*rank**(4),-1.342972+0.140585*rank+0.1448854*rank**(0.5)+0.06661479*rank**(2)-0.008611708*rank**(3)+0.0002449118*rank**(4)]
+  probas = numpy.exp(coefs)/sum(numpy.exp(coefs))
+  nbs = multinomial(nb_mvb,probas,1)[0]
+  if nbs[1] > 0: return ["B"]
+  else: 
+    buds=nbs[0]*[name[0]]+nbs[2]*[name[2]]
+    shuffle(buds)
+    return buds
+
+#probability of bursting in proleptic shoots (box4)
+def burst_in_proleptic_proba(sibling, norm_distance):
+  latent = 1.9754-0.8392*sibling+2.7870*norm_distance
+  odd = exp(latent)
+  proba = odd/(1+odd)
+  return proba
+
+#binomial function for probability pf bursting in proleptic(box4)
+def burst_in_proleptic(sibling, norm_distance):
+   proba = burst_in_proleptic_proba(sibling, norm_distance)
+   return bool(binomial(1,proba,1)[0])
+
+#length of new shoots(box5)
+def length_new_in_proleptic(length,norm_distance, fate='V'):
+  len=0.668073+0.080183*length+6.490407*norm_distance
+  if fate =='M': 
+    len += 1.111966-0.051538*length-5.007455*norm_distance
+  return int(len)
+
+#NUTS(proleptic and sylleptic)
+def number_nuts_lambda(length, siblings):
+  latent = 0.168828+0.012136*length-0.440406*siblings
+  return exp(latent)
+  
+def number_nuts(length, siblings):
+  lambda_=number_nuts_lambda(length, siblings)
+  return max (1,int(poisson(lambda_,1)[0]))
+
+#time
+currenttime = 2021 #set a variable to start
+lasttime = 2023 #set a variable to finisch
+currentmonth = 'A' 
+
+phyllotaxy = 137.5
+defdiam = 0.5
+dd = 0.1
+
+def StartEach():#new function that improve the timing
+  global currenttime, currentmonth
+  if getIterationNb() % 2 == 0 and getIterationNb() > 0: #Return the id of the current iteration.
+    currenttime += 1
+  currentmonth = 'A' if getIterationNb() % 2 == 0 else 'J'
+
+#we have to define the module we use
+module ProlBud
+module SylBud
+module MixedBud
+module Internode
+module Nuts
+module Catkin
+module Leaf
+
+#starter
+Axiom: 
+  d = 2
+  nproduce Info Elasticity(0.0005)_(d) StartGC() Tropism(0,0,-1) F(5)
+  for i in range(4):
+    nproduce /(90)[&(90)f(d)&(-60) ProlBud(trunklength, currenttime, False)]#false means that we take for granted that the first bud is vegetative
+
+derivation length: (lasttime+1-currenttime)*2
+production:
+
+ProlBud(length, burstdate, mixed):#the starter shoot is proleptic
+  if burstdate <= currenttime: 
+    nbnodes = max(1,shootnbnodesfromlength(length))#number of nodes
+    internodelength = length/nbnodes#internode length
+    midrank = (nbnodes+1)/2#median rank
+    for rank in range(1,nbnodes):#for each node
+      bangle = 60 * (1- rank/nbnodes)
+      nproduce /(phyllotaxy) Internode(internodelength, defdiam, 'P') [&(40) Leaf(burstdate)]#draw an internode 
+      rank_to_mid = abs(midrank-rank)#distance from the median node
+      sylleptic = has_sylleptic(rank_to_mid)#is sylleptic?
+      if sylleptic:
+        syl_length = 3. #length of the sylleptic
+        nb_mv = nb_mv_in_sylleptic(length, rank_to_mid)#number of buds in sylleptioc
+        nproduce [&(bangle)D(defdiam)Syl(syl_length, nb_mv,burstdate) ]#disegna il sillettico
+      else :
+        nb_buds=nb_mvb_in_proleptic(rank)#numero di gemme
+        sibling=nb_buds-1#numero di gemme siblings oltre alla gemma in questione
+        fate=bud_type_in_proleptic(rank)#gemme
+        norm_distance=rank_to_mid/nbnodes
+        for ibud in fate:
+          if ibud == 'B':
+            nproduce [&(bangle)BlindNode()]
+          else:
+            nproduce /(360/len(fate)) #dividi di un angolo di 360 gradi!! lo devo cambiare perchè non è corretto
+            if burst_in_proleptic(sibling, norm_distance):
+              lun = length_new_in_proleptic(length,norm_distance, fate='V')
+              if ibud =='V': #vegetative
+                nproduce [&(bangle)D(defdiam),(5)ProlBud(lun,burstdate+1,False)]
+              elif ibud == 'M':#mixed
+                nproduce [&(bangle)D(defdiam),(6)ProlBud(lun,burstdate+1,True)]
+    if mixed == True:
+      nproduce Nuts(burstdate) #l'anno dopo nocciola
+      
+Syl(length, nb_mv,burstdate):
+  if burstdate <= currenttime:
+    internodelength = length/(nb_mv+1)
+    nb_v = int(ceil(nb_mv*0.55))#proportion of V in sylleptic shoots (box3)
+    nb_m = (nb_mv-nb_v)#proportion of M in sylleptic shoots (box3)
+    buds = ['V']*nb_v+['M']*nb_m#create a list as: VVMMVM
+    shuffle(buds)#shuffle the list
+    nbnodes = len(buds)
+    for rank,b in enumerate(buds,1):
+      bangle = 60 * (1- rank/nbnodes)
+      nproduce /(180) Internode(internodelength, defdiam, 'S')#disegna un internodo
+      if b == 'V': # Vegetative
+        nproduce [&(bangle)D(defdiam),(5)ProlBud(internodelength,burstdate+1,False)]
+      elif b == 'M' : # Mixed
+        nproduce [&(bangle)D(defdiam),(6)ProlBud(internodelength,burstdate+1,True)]
+    nproduce /(180) Internode(internodelength, defdiam, 'S') Catkin(burstdate)
+
+Internode(l,d,t) --> Internode(l,d+dd,t)
+D(d) --> D(d+dd)
+
+interpretation:
+
+Info --> [@2D @M(0.8,0.8) @L(str(currenttime)+" "+str(getIterationNb()))]
+
+Internode(l,d,t) :
+  cmap = {'P' : 1, 'S' : 2}
+  produce ,(cmap[t])_(d)nF(l,0.5)f(0.01)
+
+D(d) --> f(d)
+
+Nuts(burstdate) :
+  if burstdate == currenttime and currentmonth == 'J' and NUTSY:
+    produce _(0.2)@Tp(0,0,-1) @Ts(0.2)nF(1,0.22),(7)f(0.5)@O(1)
+
+Leaf(burstdate) :
+  if burstdate == currenttime and LEAFY:
+    produce ,(2)@g(leafshape, 8)
+
+Catkin(burstdate) :
+  if burstdate == currenttime and currentmonth == 'J' :
+    nproduce EndGC _(0.2),(4) @Tp(0,0,-1) @Ts(0.2) StartGC [nF(5,0.2)][+(30)nF(5,0.2)][-(30)nF(5,0.2)]
+    
+BlindNode()-->f(0.01)
+ProlBud(length, burstdate, mixed)-->@O(0.12)
+endlsystem
+###### INITIALISATION ######
+
+__lpy_code_version__ = 1.1
+
+def __initialiseContext__(context):
+	import openalea.plantgl.all as pgl
+	Color_1 = pgl.Material("Color_1" , ambient = (48,33,11) , diffuse = 1.60417 , )
+	Color_1.name = "Color_1"
+	context.turtle.setMaterial(1,Color_1)
+	Color_7 = pgl.Material("Color_7" , ambient = (65,45,15) , diffuse = 3 , )
+	Color_7.name = "Color_7"
+	context.turtle.setMaterial(7,Color_7)
+	context.animation_timestep = 0.5
+	scalars = [('SEED', 'Integer', 17, 0, 100), ('LEAFY', 'Bool', False), ('NUTSY', 'Bool', True)]
+	context["__scalars__"] = scalars
+	for s in scalars:
+		if not s[1] == "Category" : context[s[0]] = s[2]
+	import openalea.plantgl.all as pgl
+	leafshape = pgl.NurbsPatch(	
+	    pgl.Point4Matrix([[(0.0219507, -0.0897315, -0.0142612, 1), (0.00391438, -0.0676957, -0.00575523, 1), (-0.0170473, -0.0414044, -0.00268306, 1), (-0.0427501, -0.023424, -0.00652478, 1)], [(0, -0.5, 0.157176, 1), (0, -0.166667, 0.157176, 1), (0, 0.166667, 0.157176, 1), (0.00136282, 0.499585, 0.159513, 1)], [(0.063963, -0.438398, 0.238403, 1), (0.00109578, -0.187242, 0.25516, 1), (-0.00670301, 0.144488, 0.246423, 1), (0.0684813, 0.419615, 0.263648, 1)], [(0.132471, -0.526697, 0.321615, 1), (0.0184936, -0.20428, 0.344984, 1), (-0.00281193, 0.121747, 0.356544, 1), (0.141443, 0.5, 0.333333, 1)], [(0.048992, -0.462259, 0.494815, 1), (0.0289511, -0.185331, 0.502717, 1), (0.048992, 0.204407, 0.494815, 1), (0.0393662, 0.363871, 0.500317, 1)], [(0.0683741, -0.49623, 0.661962, 1), (0.0301094, -0.178389, 0.661372, 1), (0.0217253, 0.15344, 0.649333, 1), (0.0736795, 0.520788, 0.668738, 1)], [(0.0221824, -0.0576137, 0.98213, 1), (-0.00531401, -0.0542713, 0.977103, 1), (-0.0143594, -0.0558759, 1.00362, 1), (-0.0326793, -0.00255448, 1.00776, 1)]]) , 
+	    )
+	leafshape.name = "leafshape"
+	panel_0 = ({'active': True, 'visible': True, 'name': 'Panel 2'},[('NurbsPatch',leafshape)])
+	parameterset = [panel_0,]
+	context["__functions__"] = []
+	context["__curves__"] = []
+	context["__parameterset__"] = parameterset
+	context["leafshape"] = leafshape
