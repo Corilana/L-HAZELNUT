@@ -4,20 +4,20 @@ Call:
 glm(formula = tot_buds_mvb ~ 1, family = "poisson", data = met.proleptic)
 
 Deviance Residuals: 
-    Min       1Q   Median       3Q      Max  
--0.0851  -0.0851  -0.0851  -0.0851   4.7132  
+   Min      1Q  Median      3Q     Max  
+-0.108  -0.108  -0.108  -0.108   4.676  
 
 Coefficients:
             Estimate Std. Error z value Pr(>|z|)   
-(Intercept)  0.08395    0.02942   2.853  0.00433 **
+(Intercept)   0.1061     0.0329   3.225  0.00126 **
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 (Dispersion parameter for poisson family taken to be 1)
 
-    Null deviance: 104.95  on 1061  degrees of freedom
-Residual deviance: 104.95  on 1061  degrees of freedom
-AIC: 2280
+    Null deviance: 102.83  on 830  degrees of freedom
+Residual deviance: 102.83  on 830  degrees of freedom
+AIC: 1815.9
 
 Number of Fisher Scoring iterations: 4
 

@@ -14,32 +14,32 @@ mixedinternodelength = 0.5
 def shootnbnodesfromlength(length):
   return int (1.81062*(length**0.57449))
 
-#probability to have sylleptic (box1)SS
-def has_sylleptic_proba(rank_to_mid):
-   ec = exp(-0.50517-0.27057*rank_to_mid)
+#probability to have sylleptic (box1)S
+def has_sylleptic_proba(norm_distance_abs):
+   ec = exp(-0.2711-4.5303*norm_distance_abs)
    proba = ec/(1+ec)
    return proba
 
 #binomial function for probability of having sylleptic(box1)
-def has_sylleptic(rank_to_mid):
-   proba = has_sylleptic_proba(rank_to_mid)
+def has_sylleptic(norm_distance_abs):
+   proba = has_sylleptic_proba(norm_distance_abs)
    return bool(binomial(1,proba,1)[0])
 
 #SYLLEPTIC
 #number of buds inside sylleptic shoots(box2)
-def nb_mv_in_sylleptic_lambda(length, rank_to_mid):
-  latent = 0.603063 + 0.016648 * length - 0.137954 * rank_to_mid
+def nb_mv_in_sylleptic_lambda(length, norm_distance_abs):
+  latent = 0.806471 + 0.011091 * length - 1.971983 * norm_distance_abs
   return exp(latent)
 
 #poisson function for number of buds inside sylleptic shoots(box2)
-def nb_mv_in_sylleptic(length, rank_to_mid):
-  lambda_ = nb_mv_in_sylleptic_lambda(length, rank_to_mid)
+def nb_mv_in_sylleptic(length, norm_distance_abs):
+  lambda_ = nb_mv_in_sylleptic_lambda(length, norm_distance_abs)
   return max(1,int(poisson(lambda_,1)[0]))
 
 #probability of bursting in sylleptic shoots (box4)
 def burst_in_sylleptic_proba(nb_siblings_V, nb_siblings_M, fate='V'):
-  latent = 1.4002 -0.2140*nb_siblings_M-0.6422*nb_siblings_V #we utilize just significant values
-  if fate == 'M': latent += -0.4511*nb_siblings_M +0.3876*nb_siblings_V
+  latent = 1.2464 -0.5799*nb_siblings_V 
+  if fate == 'M': latent += -0.7439*nb_siblings_M -0.3292*nb_siblings_V
   ec = exp(latent)
   proba = ec/(1+ec)
   return proba
@@ -56,23 +56,19 @@ def length_new_in_sylleptic():
 
 #PROLEPTIC
 
-#number of buds in proleptic shoots(box2)
-def nb_mvb_in_proleptic_lambda(rank):
-  latent =  0.011678 * rank 
-  return exp(latent)
-  
+#nb_buds in proleptic
+nb_mvb_in_proleptic_lambda= exp(0.1061)
+
 #poisson function for number of buds inside sylleptic shoots(box2)
-def nb_mvb_in_proleptic(rank):
-  lambda_ = nb_mvb_in_proleptic_lambda(rank)
-  return max(1,int(poisson(lambda_,1)[0]))
+nb_mvb_in_proleptic = max(1,int(poisson(nb_mvb_in_proleptic_lambda,1)[0]))
 
 #bud type in proleptic shoots(box3)
 def bud_type_in_proleptic(rank):
   name=["V","B","M"]
-  nb_mvb=nb_mvb_in_proleptic(rank)
+  nb_mvb_in_proleptic
   coefs = [0.,28.109405+44.244359*rank-66.9705830*rank**(0.5)-6.62976360*rank**(2)+0.623165597*rank**(3)-0.0221203157*rank**(4),-1.342972+0.140585*rank+0.1448854*rank**(0.5)+0.06661479*rank**(2)-0.008611708*rank**(3)+0.0002449118*rank**(4)]
   probas = numpy.exp(coefs)/sum(numpy.exp(coefs))
-  nbs = multinomial(nb_mvb,probas,1)[0]
+  nbs = multinomial(nb_mvb_in_proleptic,probas,1)[0]
   if nbs[1] > 0: return ["B"]
   else: 
     buds=nbs[0]*[name[0]]+nbs[2]*[name[2]]
@@ -80,31 +76,32 @@ def bud_type_in_proleptic(rank):
     return buds
 
 #probability of bursting in proleptic shoots (box4)
-def burst_in_proleptic_proba(sibling, norm_distance):
-  latent = 1.9754-0.8392*sibling+2.7870*norm_distance
+def burst_in_proleptic_proba(siblings_mv, norm_distance,fate='V'):
+  latent = 1.9914-0.09149*siblings_mv+2.9827*norm_distance
+  if fate == 'M': latent += -0.8290*siblings_mv +2.3983*norm_distance
   odd = exp(latent)
   proba = odd/(1+odd)
   return proba
 
 #binomial function for probability pf bursting in proleptic(box4)
-def burst_in_proleptic(sibling, norm_distance):
-   proba = burst_in_proleptic_proba(sibling, norm_distance)
+def burst_in_proleptic(siblings_mv, norm_distance,fate='V'):
+   proba = burst_in_proleptic_proba(siblings_mv, norm_distance,fate='V')
    return bool(binomial(1,proba,1)[0])
 
 #length of new shoots(box5)
 def length_new_in_proleptic(length,norm_distance, fate='V'):
-  len=0.668073+0.080183*length+6.490407*norm_distance
+  len=1.252965+0.067470*length+6.256609*norm_distance
   if fate =='M': 
-    len += 1.111966-0.051538*length-5.007455*norm_distance
+    len += -0.039516*length+1.455136*norm_distance
   return int(len)
 
 #NUTS(proleptic and sylleptic)
-def number_nuts_lambda(length, siblings):
-  latent = 0.168828+0.012136*length-0.440406*siblings
+def number_nuts_lambda(length, siblings_mv):
+  latent = 0.200584+0.011354*length-0.412338*siblings_mv
   return exp(latent)
   
-def number_nuts(length, siblings):
-  lambda_=number_nuts_lambda(length, siblings)
+def number_nuts(length, siblings_mv):
+  lambda_=number_nuts_lambda(length, siblings_mv)
   return max (1,int(poisson(lambda_,1)[0]))
 
 #time
@@ -149,23 +146,24 @@ ProlBud(length, burstdate, mixed):#the starter shoot is proleptic
     for rank in range(1,nbnodes):#for each node
       bangle = 60 * (1- rank/nbnodes)
       nproduce /(phyllotaxy) Internode(internodelength, defdiam, 'P') [&(40) Leaf(burstdate)]#draw an internode 
-      rank_to_mid = abs(midrank-rank)#distance from the median node
-      sylleptic = has_sylleptic(rank_to_mid)#is sylleptic?
+      rank_to_mid =(midrank-rank)#distance from the median node
+      norm_distance_abs=abs(rank_to_mid/nbnodes)
+      sylleptic = has_sylleptic(norm_distance_abs)#is sylleptic?
       if sylleptic:
         syl_length = 3. #length of the sylleptic
-        nb_mv = nb_mv_in_sylleptic(length, rank_to_mid)#number of buds in sylleptioc
+        nb_mv = nb_mv_in_sylleptic(length, norm_distance_abs)#number of buds in sylleptioc
         nproduce [&(bangle)D(defdiam)Syl(syl_length, nb_mv,burstdate) ]#disegna il sillettico
       else :
-        nb_buds=nb_mvb_in_proleptic(rank)#numero di gemme
-        sibling=nb_buds-1#numero di gemme siblings oltre alla gemma in questione
-        fate=bud_type_in_proleptic(rank)#gemme
         norm_distance=rank_to_mid/nbnodes
+        nb_buds=nb_mvb_in_proleptic#numero di gemme
+        siblings_mv=nb_buds-1#numero di gemme siblings oltre alla gemma in questione
+        fate=bud_type_in_proleptic(rank)#gemme
         for ibud in fate:
           if ibud == 'B':
             nproduce [&(bangle)BlindNode()]
           else:
             nproduce /(360/len(fate)) #dividi di un angolo di 360 gradi!! lo devo cambiare perchè non è corretto
-            if burst_in_proleptic(sibling, norm_distance):
+            if burst_in_proleptic(siblings_mv, norm_distance):
               lun = length_new_in_proleptic(length,norm_distance, fate='V')
               if ibud =='V': #vegetative
                 nproduce [&(bangle)D(defdiam),(5)ProlBud(lun,burstdate+1,False)]
@@ -177,7 +175,7 @@ ProlBud(length, burstdate, mixed):#the starter shoot is proleptic
 Syl(length, nb_mv,burstdate):
   if burstdate <= currenttime:
     internodelength = length/(nb_mv+1)
-    nb_v = int(ceil(nb_mv*0.55))#proportion of V in sylleptic shoots (box3)
+    nb_v = int(ceil(nb_mv*0.52))#proportion of V in sylleptic shoots (box3)
     nb_m = (nb_mv-nb_v)#proportion of M in sylleptic shoots (box3)
     buds = ['V']*nb_v+['M']*nb_m#create a list as: VVMMVM
     shuffle(buds)#shuffle the list
@@ -206,7 +204,7 @@ D(d) --> f(d)
 
 Nuts(burstdate) :
   if burstdate == currenttime and currentmonth == 'J' and NUTSY:
-    produce _(0.2)@Tp(0,0,-1) @Ts(0.2)nF(1,0.22),(7)f(0.5)@O(1)
+    produce _(0.2)@Tp(0,0,-1) @Ts(0.2)nF(3,0.22),(7)f(1)@O(1)
 
 Leaf(burstdate) :
   if burstdate == currenttime and LEAFY:

@@ -1,0 +1,26 @@
+{
+    "id": "71EC3165",
+    "path": "C:/Users/franc/My Drive/PhD/Progetti/Deruta/Own_rooted_young/Scripts/Modify_dataset/import_dataset.R",
+    "project_path": "Scripts/Modify_dataset/import_dataset.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1669040848322.0,
+    "source_on_save": false,
+    "relative_order": 3,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "34,0",
+        "scrollLine": "30"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1669040890,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1669040890178,
+    "read_only": false,
+    "read_only_alternatives": []
+}
