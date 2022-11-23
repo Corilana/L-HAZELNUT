@@ -5,7 +5,7 @@ import random
 import numpy
 
 #variable to stop the random simulations
-seed(SEED)
+#seed(SEED)
 
 trunklength = 70.
 mixedinternodelength = 0.5
@@ -14,7 +14,7 @@ mixedinternodelength = 0.5
 def shootnbnodesfromlength(length):
   return int (1.81062*(length**0.57449))
 
-#probability to have sylleptic (box1)S
+#probability to have sylleptic (box1)
 def has_sylleptic_proba(norm_distance_abs):
    ec = exp(-0.2711-4.5303*norm_distance_abs)
    proba = ec/(1+ec)
@@ -52,6 +52,8 @@ def burst_in_sylleptic(nb_siblings_V, nb_siblings_M, fate='V'):
 #gamma dist number of nodes of new shoots(box5)
 def length_new_in_sylleptic():  
   len=numpy.random.gamma(shape=2.376818, scale=1/1.197655)
+  if len < 0:
+    len=0
   return len
 
 #PROLEPTIC
@@ -92,8 +94,10 @@ def burst_in_proleptic(siblings_mv, norm_distance,fate='V'):
 def length_new_in_proleptic(length,norm_distance, fate='V'):
   len=1.252965+0.067470*length+6.256609*norm_distance
   if fate =='M': 
-    len += -0.039516*length+1.455136*norm_distance
-  return int(len)
+    len += 0.039516*length+1.455136*norm_distance
+  if len < 0:
+    len=0
+  return float(len)
 
 #NUTS(proleptic and sylleptic)
 def number_nuts_lambda(length, siblings_mv):
@@ -103,21 +107,38 @@ def number_nuts_lambda(length, siblings_mv):
 def number_nuts(length, siblings_mv):
   lambda_=number_nuts_lambda(length, siblings_mv)
   return max (1,int(poisson(lambda_,1)[0]))
+  
+#DIAMETER
+#function for the relationship between diameter in mm and length in cm
+def diameter(length):
+  return float (1.52679*(length**0.37395))
+  
+#JUVENILITY=
+def length_new_juven(length,norm_distance):
+  len= 1+0.3*length+15*norm_distance
+  if len < 0:
+    len=0
+  return float(len)
 
 #time
 currenttime = 2021 #set a variable to start
+endjuvenility=2022 #un anno di giovanilità
 lasttime = 2023 #set a variable to finisch
-currentmonth = 'A' 
+currentmonth = 'J' 
 
 phyllotaxy = 137.5
-defdiam = 0.5
+defdiam = 0.7
 dd = 0.1
+June = "J"
+August = "A"
 
 def StartEach():#new function that improve the timing
+  print("starteach")
   global currenttime, currentmonth
-  if getIterationNb() % 2 == 0 and getIterationNb() > 0: #Return the id of the current iteration.
+  iter = getIterationNb()+1
+  if iter % 2 == 0 : #Return the id of the current iteration.
     currenttime += 1
-  currentmonth = 'A' if getIterationNb() % 2 == 0 else 'J'
+  currentmonth = June if iter%2 == 0 else August
 
 #we have to define the module we use
 module ProlBud
@@ -139,22 +160,33 @@ derivation length: (lasttime+1-currenttime)*2
 production:
 
 ProlBud(length, burstdate, mixed):#the starter shoot is proleptic
-  if burstdate <= currenttime: 
-    nbnodes = max(1,shootnbnodesfromlength(length))#number of nodes
-    internodelength = length/nbnodes#internode length
-    midrank = (nbnodes+1)/2#median rank
+  nbnodes = max(1,shootnbnodesfromlength(length))#number of nodes
+  internodelength = length/float(nbnodes)#internode length
+  defdiam = float(diameter(length))/10
+  midrank = (nbnodes+1)/2#median rank
+  if burstdate <= endjuvenility: 
+    for rank in range(1,nbnodes):
+      rank_to_mid =(rank-midrank)#distance from the median node
+      norm_distance=rank_to_mid/float(nbnodes)
+      bangle = 40 * (1- rank/nbnodes)
+      lun=length_new_juven(length,norm_distance)
+      nproduce /(phyllotaxy) Internode(internodelength, defdiam, 'P')[&(40) Leaf(burstdate)] #draw an internode
+      if rank >= (midrank/2):
+        nproduce [&(bangle)D(defdiam),(5)ProlBud(lun,burstdate+1,False)]
+  else: 
     for rank in range(1,nbnodes):#for each node
-      bangle = 60 * (1- rank/nbnodes)
       nproduce /(phyllotaxy) Internode(internodelength, defdiam, 'P') [&(40) Leaf(burstdate)]#draw an internode 
-      rank_to_mid =(midrank-rank)#distance from the median node
-      norm_distance_abs=abs(rank_to_mid/nbnodes)
+      bangle = 60 * (1- rank/nbnodes)
+      rank_to_mid =(rank-midrank)#distance from the median node
+      norm_distance_abs=abs(rank_to_mid/float(nbnodes))
       sylleptic = has_sylleptic(norm_distance_abs)#is sylleptic?
       if sylleptic:
         syl_length = 3. #length of the sylleptic
+        defdiam_syl = float(diameter(syl_length))/10
         nb_mv = nb_mv_in_sylleptic(length, norm_distance_abs)#number of buds in sylleptioc
-        nproduce [&(bangle)D(defdiam)Syl(syl_length, nb_mv,burstdate) ]#disegna il sillettico
+        nproduce [&(bangle)D(defdiam_syl)Syl(syl_length, nb_mv,burstdate) ]#disegna il sillettico
       else :
-        norm_distance=rank_to_mid/nbnodes
+        norm_distance=rank_to_mid/float(nbnodes)
         nb_buds=nb_mvb_in_proleptic#numero di gemme
         siblings_mv=nb_buds-1#numero di gemme siblings oltre alla gemma in questione
         fate=bud_type_in_proleptic(rank)#gemme
@@ -169,32 +201,36 @@ ProlBud(length, burstdate, mixed):#the starter shoot is proleptic
                 nproduce [&(bangle)D(defdiam),(5)ProlBud(lun,burstdate+1,False)]
               elif ibud == 'M':#mixed
                 nproduce [&(bangle)D(defdiam),(6)ProlBud(lun,burstdate+1,True)]
-    if mixed == True:
-      nproduce Nuts(burstdate) #l'anno dopo nocciola
+                nb_nuts=number_nuts(length, siblings_mv)
+                for nuts in range(1,nb_nuts):
+                    nproduce /45[/(360/nb_nuts)&(bangle)Nuts(burstdate)] #l'anno dopo nocciola
+                    
       
 Syl(length, nb_mv,burstdate):
-  if burstdate <= currenttime:
+  if burstdate >= endjuvenility:
     internodelength = length/(nb_mv+1)
     nb_v = int(ceil(nb_mv*0.52))#proportion of V in sylleptic shoots (box3)
     nb_m = (nb_mv-nb_v)#proportion of M in sylleptic shoots (box3)
     buds = ['V']*nb_v+['M']*nb_m#create a list as: VVMMVM
     shuffle(buds)#shuffle the list
+    defdiam_syl = float(diameter(length))/10
     nbnodes = len(buds)
     for rank,b in enumerate(buds,1):
       bangle = 60 * (1- rank/nbnodes)
-      nproduce /(180) Internode(internodelength, defdiam, 'S')#disegna un internodo
+      nproduce /(180) Internode(internodelength, defdiam_syl, 'S')#disegna un internodo
       if b == 'V': # Vegetative
-        nproduce [&(bangle)D(defdiam),(5)ProlBud(internodelength,burstdate+1,False)]
+        nproduce [&(bangle)D(defdiam_syl),(5)ProlBud(internodelength,burstdate+1,False)]
       elif b == 'M' : # Mixed
-        nproduce [&(bangle)D(defdiam),(6)ProlBud(internodelength,burstdate+1,True)]
-    nproduce /(180) Internode(internodelength, defdiam, 'S') Catkin(burstdate)
+        nproduce [&(bangle)D(defdiam_syl),(6)ProlBud(internodelength,burstdate+1,True)]
+    nproduce /(180) Internode(internodelength, defdiam_syl, 'S') Catkin(burstdate)
 
 Internode(l,d,t) --> Internode(l,d+dd,t)
 D(d) --> D(d+dd)
 
 interpretation:
 
-Info --> [@2D @M(0.8,0.8) @L(str(currenttime)+" "+str(getIterationNb()))]
+Info --> [@2D @M(0.8,0.8) @L(str(currenttime)+" "+str(currentmonth)+" "+str(getIterationNb()+1))]
+#Yield --> [@2D @M(0.8,0.8) @L("nb:nuts" +str(currenttime)+"="+str(nb_nuts))]
 
 Internode(l,d,t) :
   cmap = {'P' : 1, 'S' : 2}
@@ -203,11 +239,11 @@ Internode(l,d,t) :
 D(d) --> f(d)
 
 Nuts(burstdate) :
-  if burstdate == currenttime and currentmonth == 'J' and NUTSY:
+  if burstdate >= endjuvenility and currentmonth == 'A' and NUTSY:
     produce _(0.2)@Tp(0,0,-1) @Ts(0.2)nF(3,0.22),(7)f(1)@O(1)
 
 Leaf(burstdate) :
-  if burstdate == currenttime and LEAFY:
+  if burstdate == currenttime and currentmonth == 'A' and LEAFY:
     produce ,(2)@g(leafshape, 8)
 
 Catkin(burstdate) :
@@ -230,7 +266,7 @@ def __initialiseContext__(context):
 	Color_7.name = "Color_7"
 	context.turtle.setMaterial(7,Color_7)
 	context.animation_timestep = 0.5
-	scalars = [('SEED', 'Integer', 17, 0, 100), ('LEAFY', 'Bool', False), ('NUTSY', 'Bool', True)]
+	scalars = [('SEED', 'Integer', 17, 0, 100), ('LEAFY', 'Bool', True), ('NUTSY', 'Bool', False)]
 	context["__scalars__"] = scalars
 	for s in scalars:
 		if not s[1] == "Category" : context[s[0]] = s[2]

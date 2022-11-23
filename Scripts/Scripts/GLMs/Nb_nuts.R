@@ -136,7 +136,7 @@ dupl[dupl < 0] = 0
 conf_int[c(10:19)] = dupl
 
 # graph
-png("Outputs/Plots/7:nb_nuts.png",width=1200, height=900, res=150)# save plot
+png("Outputs/Plots/7_nb_nuts.png",width=1200, height=900, res=150)# save plot
 rbPal <- brewer.pal(n=6, name="Set1")
 transp<-alphaPalette(rbPal, rep(0.25,6))
 par(mfrow=c(1,1))
@@ -161,11 +161,12 @@ for (i in 1:length(grep("lw", colnames(conf_int)))) {
                                        y=c(rev(lw),up),
                                        col=transp[i], border = NA))
 }
-legend("top",
+legend("topleft",
        horiz=T,
        title="number of sibling buds",
        xpd = TRUE,
        legend = c(seq(0,8,2)),
        fill = rbPal[1:6],
+       bty="n",
        cex=1)
 dev.off()
