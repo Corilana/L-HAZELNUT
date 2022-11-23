@@ -1,5 +1,6 @@
 #AIM1: freq dist per each rank --> nb of shoots
 #AIM2: relationship length (node) ~ length (cm)
+#AIM3: relationship length(cm) ~ diameter (mm)
 #data:deruta 2020
 #PhD: Francesca Grisafi
 source("Scripts/Modify_dataset/import_dataset.R")
@@ -32,4 +33,20 @@ plot(shoot$node~shoot$Length, pch=c(1:4)[shoot$class],
      ylab="parent #nodes")
 legend("topleft", legend=c("Sh", "Me", "Lo", "VLo"), pch=c(1:4),bty='n')
 dev.off()
+
+
+# AIM3: relationship length(cm) ~ diameter (mm) --------------------------
+#data visualization
+plot(Diam~Length, shoot,pch=19)
+#MODEL
+model = nls(Diam ~ a * (Length ^ b) + 0,
+            data = shoot,
+            start = c(a = 1, b = 1))
+summary(model)
+# visualize
+lines(seq(0,75,1), predict(model, data.frame(Length=seq(0,75,1))),lwd=3)
+#save outputs
+out=capture.output(summary(model))
+cat("1_length~diameter", out, file="Outputs/Tables/1_length~diameter.txt", sep="\n")
+
 

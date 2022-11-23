@@ -1,3 +1,4 @@
+#logigram:"how many buds?"
 #AIM: nb buds in proleptic shoots
 #data: DERUTA 2020
 #PhD: Francesca Grisafi

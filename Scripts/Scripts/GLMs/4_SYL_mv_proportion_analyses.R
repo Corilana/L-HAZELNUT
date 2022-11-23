@@ -1,3 +1,4 @@
+#logigram:"number of V"
 #AIM: nb buds of V and M in sylleptic shoots
 #data: DERUTA 2020
 #PhD: Francesca Grisafi

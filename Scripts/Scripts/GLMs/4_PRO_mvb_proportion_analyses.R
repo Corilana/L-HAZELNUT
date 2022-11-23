@@ -1,3 +1,4 @@
+#logigram:MOD4
 #AIM: nb buds of B, V and M in proleptic shoots
 #data: DERUTA 2020
 #PhD: Francesca Grisafi

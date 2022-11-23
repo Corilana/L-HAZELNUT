@@ -1,3 +1,4 @@
+#logigram:MOD2
 #AIM: graph of proportion of new shoots from buds in sylleptic buds
 #data: DERUTA 2020
 #PhD: Francesca Grisafi

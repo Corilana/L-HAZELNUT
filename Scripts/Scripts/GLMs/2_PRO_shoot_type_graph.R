@@ -1,3 +1,4 @@
+#logigram:MOD1
 #AIM: graph of probability of having a sylleptic shoot on that rank 
 #data: DERUTA 2020
 #PhD: Francesca Grisafi

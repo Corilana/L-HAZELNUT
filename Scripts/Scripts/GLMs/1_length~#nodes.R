@@ -1,3 +1,4 @@
+#logigram:"how many nodes"
 #AIM: relationship between length and number of nodes 
 #data: DERUTA 2020
 #PhD: Francesca Grisafi
