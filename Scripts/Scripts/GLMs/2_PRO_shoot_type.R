@@ -1,6 +1,7 @@
 #AIM: probability of having a sylleptic shoot on that rank 
 #data: DERUTA 2020
 #PhD: Francesca Grisafi
+#Run from "HazelnutFSPM/Scripts"
 source("Scripts/Modify_dataset/import_dataset.R")
 source("Scripts/GLMs/Functions/permutation_glm.R")
 #according to exploratory
@@ -29,7 +30,7 @@ model= glm(
 summary(model)
 #AIC:1038
 #permute median_distance
-# permutation(dip="shoot_type",predictors = parameters[-2],
+permutation(dip="shoot_type",predictors = parameters[-2],
             perm = parameters[2],family = "binomial",data = met)
 #better permutations: 13>10
 #remove median_distance

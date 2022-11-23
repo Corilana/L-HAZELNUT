@@ -1,6 +1,7 @@
 #AIM: length of new shoots from buds in proleptic buds
 #data: DERUTA 2020
 #PhD: Francesca Grisafi
+#Run from "HazelnutFSPM/Scripts"
 
 source("Scripts/Modify_dataset/import_dataset.R")
 
