@@ -11,13 +11,14 @@ library(ShapleyValue)
 str(met.proleptic$tot_buds_mvb)#glm family poisson
 
 names(met.proleptic)
-parameters = c("Length","rank_node","normal_distance",
-               "distance_abs", "Length.node.", "median_distance",
-               "median_distance_norm")
+met.proleptic=droplevels(met.proleptic[met.proleptic$shoot_type=="PROLEPTIC",])
+parameters = c("Length","rank_node","abs_norm_median_distance",
+               "abs_median_distance", "Length.node.", "median_distance",
+               "norm_median_distance")
 #model1
 model = glm(
-  tot_buds_mvb ~ Length + rank_node + Length.node.+
-    normal_distance + distance_abs + median_distance+median_distance_norm,
+  tot_buds_mvb ~ Length + rank_node + abs_norm_median_distance + abs_median_distance +
+    Length.node.+ median_distance+norm_median_distance,
   family = "poisson",
   data = met.proleptic
 )
@@ -28,8 +29,8 @@ parameters = parameters[-6]
 
 #model2
 model = glm(
-  tot_buds_mvb ~ Length + rank_node + Length.node.+
-    normal_distance + distance_abs + median_distance_norm,
+  tot_buds_mvb ~ Length + rank_node + abs_norm_median_distance + abs_median_distance +
+    Length.node.+ norm_median_distance,
   family = "poisson",
   data = met.proleptic
 )
@@ -40,32 +41,31 @@ parameters=parameters[-2]
 
 #model3
 model = glm(
-  tot_buds_mvb ~ Length + Length.node.+
-    normal_distance + distance_abs + median_distance_norm,
+  tot_buds_mvb ~ Length + abs_norm_median_distance + abs_median_distance +
+    Length.node.+ norm_median_distance,
   family = "poisson",
   data = met.proleptic
 )
 summary(model)
 #AIC: 1822.7
-#remove normal distance
+#remove abs_norm_median_distance
 parameters = parameters[-2]
 
 #model4
 model = glm(
-  tot_buds_mvb ~ Length + Length.node.+
-    distance_abs + median_distance_norm,
+  tot_buds_mvb ~ Length + abs_median_distance +
+    Length.node.+ norm_median_distance,
   family = "poisson",
   data = met.proleptic
 )
 summary(model)
 #AIC:1821
-#remove distance_abs
+#remove abs_median_distance
 parameters = parameters[-2]
 
 #model5
 model = glm(
-  tot_buds_mvb ~ Length + Length.node.+
-    median_distance_norm,
+  tot_buds_mvb ~ Length + Length.node.+ norm_median_distance,
   family = "poisson",
   data = met.proleptic
 )
@@ -76,8 +76,7 @@ parameters = parameters[-2]
 
 #model6
 model = glm(
-  tot_buds_mvb ~ Length + 
-    median_distance_norm,
+  tot_buds_mvb ~ Length + norm_median_distance,
   family = "poisson",
   data = met.proleptic
 )
@@ -88,7 +87,7 @@ parameters = parameters[-1]
 
 #model7
 model = glm(
-  tot_buds_mvb ~ median_distance_norm,
+  tot_buds_mvb ~ norm_median_distance,
   family = "poisson",
   data = met.proleptic
 )
@@ -105,6 +104,7 @@ model = glm(
 )
 summary(model)
 #AIC: 1815.9
+exp(model$coefficients)
 
 #save outputs
 out=capture.output(summary(model))

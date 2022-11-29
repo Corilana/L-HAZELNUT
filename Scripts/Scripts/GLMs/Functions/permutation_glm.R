@@ -1,6 +1,6 @@
 #permutation models
 permutation = function(dip = "shoot_type",
-                       predictors = c("Length", "distance_abs"),
+                       predictors = c("Length", "abs_median_distance"),
                        perm = "parent_rank_node",
                        data = met,
                        family = "binomial") {

@@ -1,4 +1,4 @@
-"tesi","Length","Diam","class","shoot_ID","Tree","Length.node.","rank_node","median_distance","normal_distance","distance_abs","c","v","m","cl","nu","b","tot_buds_m.v.b.c","shoot_type","nb_new_shoots"
+"tesi","Length","Diam","class","shoot_ID","Tree","Length.node.","rank_node","median_distance","abs_norm_median_distance","abs_median_distance","c","v","m","cl","nu","b","tot_buds_m.v.b.c","shoot_type","nb_new_shoots"
 "AUTOR",42,6.37,"VLo",1,8,13,1,-6,0.46,6,0,1,0,0,0,0,1,"PROLEPTIC",0
 "AUTOR",42,6.37,"VLo",1,8,13,2,-5,0.38,5,0,0,0,0,0,1,1,"PROLEPTIC",0
 "AUTOR",42,6.37,"VLo",1,8,13,3,-4,0.31,4,0,1,0,0,0,0,1,"PROLEPTIC",1

@@ -2,7 +2,6 @@
 #AIM: length of new shoots from buds in sylleptic buds
 #data: DERUTA 2020
 #PhD: Francesca Grisafi
-
 source("Scripts/Modify_dataset/import_dataset.R")
 source("Scripts/GLMs/Functions/permutation_glm.R")
 source("Scripts/GLMs/Functions/shapleyplot.R")
@@ -15,11 +14,13 @@ str(MV.bud.SYL$length2yo.cm.)#gaussian family
 
 names(MV.bud.SYL)
 parameters = c("m","v","parent_rank_node","fate",
-              "parent_length_cm","distance_abs",
-              "siblings_mv","normal_distance","median_distance_norm")
+              "parent_length_cm","abs_median_distance",
+              "siblings_mv","abs_norm_median_distance","norm_median_distance")
 
 #model1
-model = glm(length2yo.cm. ~  m + fate + v + siblings_mv + parent_rank_node+parent_length_cm+distance_abs+normal_distance+median_distance_norm,
+model = glm(length2yo.cm. ~  m + v +parent_rank_node+
+              fate +  parent_length_cm+abs_median_distance+
+              siblings_mv + abs_norm_median_distance+norm_median_distance,
   family = "gaussian",
   data = MV.bud.SYL
 )
@@ -29,17 +30,21 @@ summary(model)
 parameters = parameters[-7]
 
 #model2
-model = glm(length2yo.cm. ~  m + fate + v + parent_rank_node+parent_length_cm+distance_abs+normal_distance+median_distance_norm,
+model = glm(length2yo.cm. ~  m + v +parent_rank_node+
+              fate +  parent_length_cm+abs_median_distance+
+              abs_norm_median_distance+norm_median_distance,
             family = "gaussian",
             data = MV.bud.SYL
 )
 summary(model)
 #AIC:1016.2
-#remove normal distance
+#remove abs_norm_median_distance
 parameters = parameters[-7]
 
 #model3
-model = glm(length2yo.cm. ~  m + fate + v + parent_rank_node+parent_length_cm+distance_abs+median_distance_norm,
+model = glm(length2yo.cm. ~  m + v +parent_rank_node+
+              fate +  parent_length_cm+abs_median_distance+
+              norm_median_distance,
             family = "gaussian",
             data = MV.bud.SYL
 )
@@ -49,7 +54,9 @@ summary(model)
 parameters = parameters[-2]
 
 #model4
-model = glm(length2yo.cm. ~  m + fate + parent_rank_node+parent_length_cm+distance_abs+median_distance_norm,
+model = glm(length2yo.cm. ~  m + parent_rank_node+
+              fate +  parent_length_cm+abs_median_distance+
+              norm_median_distance,
             family = "gaussian",
             data = MV.bud.SYL
 )
@@ -59,17 +66,21 @@ summary(model)
 parameters = parameters[-1]
 
 #model5
-model = glm(length2yo.cm. ~  fate + parent_rank_node+parent_length_cm+distance_abs+median_distance_norm,
+model = glm(length2yo.cm. ~  parent_rank_node+
+              fate +  parent_length_cm+abs_median_distance+
+              norm_median_distance,
             family = "gaussian",
             data = MV.bud.SYL
 )
 summary(model)
 #AIC:1010.6
-#remove distance_abs
+#remove abs_median_distance
 parameters = parameters[-4]
 
 #model6
-model = glm(length2yo.cm. ~  fate + parent_rank_node+parent_length_cm+median_distance_norm,
+model = glm(length2yo.cm. ~  parent_rank_node+
+              fate +  parent_length_cm+
+              norm_median_distance,
             family = "gaussian",
             data = MV.bud.SYL
 )
@@ -79,7 +90,9 @@ summary(model)
 parameters = parameters[-2]
 
 #model7
-model = glm(length2yo.cm. ~  parent_rank_node+parent_length_cm+median_distance_norm,
+model = glm(length2yo.cm. ~  parent_rank_node+
+              parent_length_cm+
+              norm_median_distance,
             family = "gaussian",
             data = MV.bud.SYL
 )
@@ -89,13 +102,14 @@ summary(model)
 parameters = parameters[-1]
 
 #model8
-model = glm(length2yo.cm. ~  parent_length_cm+median_distance_norm,
+model = glm(length2yo.cm. ~ parent_length_cm+
+              norm_median_distance,
             family = "gaussian",
             data = MV.bud.SYL
 )
 summary(model)
 #AIC:1008.9
-#remove distance
+#remove norm_median_distance
 parameters = parameters[-2]
 
 #model9
@@ -105,7 +119,7 @@ model = glm(length2yo.cm. ~  parent_length_cm,
 )
 summary(model)
 #AIC:1007.5
-#remove distance
+#remove length
 parameters = parameters[-1]
 
 #BECAUSE NON OF THE MODEL WAS SATYISFING, AND BECAUSE THERE ARE NOT MUCH INFO ON SYLLEPTIC SHOOT,

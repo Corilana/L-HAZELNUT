@@ -1,4 +1,4 @@
-"tesi","Length","Diam","class","shoot_ID","Tree","Length.node.","rank_node","median_distance","normal_distance","distance_abs","c","v","m","cl","nu","b","tot_buds_m.v.b.c","siblings_mv","fate","shoot_type","presence_new_shoots","length2yo.cm.","length.newshoots","X.nodes2yo","c.1","v.1","m.1","cic.1","cl.1","B.1"
+"tesi","Length","Diam","class","shoot_ID","Tree","Length.node.","rank_node","median_distance","abs_norm_median_distance","abs_median_distance","c","v","m","cl","nu","b","tot_buds_m.v.b.c","siblings_mv","fate","shoot_type","nb_new_shoots","length2yo.cm.","length.newshoots","X.nodes2yo","c.1","v.1","m.1","cic.1","cl.1","B.1"
 "AUTOR",42,6.37,"VLo",1,8,13,1,-6,0.46,6,0,0,0,0,0,0,1,0,"V","PROLEPTIC",0,NA,NA,NA,NA,NA,NA,NA,NA,NA
 "AUTOR",42,6.37,"VLo",1,8,13,2,-5,0.38,5,0,0,0,0,0,0,1,0,"B","PROLEPTIC",0,NA,NA,NA,NA,NA,NA,NA,NA,NA
 "AUTOR",42,6.37,"VLo",1,8,13,3,-4,0.31,4,0,0,0,0,0,0,1,0,"V","PROLEPTIC",1,1,"Sh",4,2,2,0,0,0,1

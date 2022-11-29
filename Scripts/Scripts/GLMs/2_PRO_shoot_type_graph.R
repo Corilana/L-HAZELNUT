@@ -8,14 +8,14 @@ library(RColorBrewer)
 
 #relative frequency table of proportion of sylleptic related to narmal_distance
 parameters
-syl_norm=table(met$normal_distance, met$shoot_type)
+syl_norm=table(met$abs_norm_median_distance, met$shoot_type)
 syl_norm
 syl_norm.freq=prop.table(syl_norm, 1)
 syl_norm.freq.matrix = as.data.frame.matrix(syl_norm.freq)
-syl_norm.freq.matrix$normal_distance = as.numeric(rownames(syl_norm.freq.matrix))
+syl_norm.freq.matrix$abs_norm_median_distance = as.numeric(rownames(syl_norm.freq.matrix))
 head(syl_norm.freq.matrix)
 
-plot(met$shoot_type~met$normal_distance)
+plot(met$shoot_type~met$abs_norm_median_distance)
 str(met$shoot_type)
 #graph
 png("Outputs/Plots/2_proba_sylleptic.png",
@@ -26,7 +26,7 @@ rbPal <- brewer.pal(n=6, name="Set1")
 with(
   syl_norm.freq.matrix,
   plot(
-    SYLLEPTIC ~ normal_distance,
+    SYLLEPTIC ~ abs_norm_median_distance,
     xlab = "normalized distance from median rank node",
     ylab = "proportion of sylleptic shoots",
     ylim = c(0, 1),
@@ -34,9 +34,9 @@ with(
     lwd = 4
   )
 )
-lines(seq(min(syl_norm.freq.matrix$normal_distance), max(syl_norm.freq.matrix$normal_distance), 0.05),
-      predict(model, newdata = data.frame(normal_distance = seq(
-        min(syl_norm.freq.matrix$normal_distance), max(syl_norm.freq.matrix$normal_distance), 0.05)),"response"),
+lines(seq(min(syl_norm.freq.matrix$abs_norm_median_distance), max(syl_norm.freq.matrix$abs_norm_median_distance), 0.05),
+      predict(model, newdata = data.frame(abs_norm_median_distance = seq(
+        min(syl_norm.freq.matrix$abs_norm_median_distance), max(syl_norm.freq.matrix$abs_norm_median_distance), 0.05)),"response"),
       lwd = 5)
 dev.off()
 

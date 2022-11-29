@@ -7,11 +7,13 @@ source("Scripts/Modify_dataset/import_dataset.R")
 library(nnet)
 
 names(bud.proleptic)
-parameters = c("Length","rank_node","Length.node.", "normal_distance","median_distance")
+parameters = c("Length","rank_node","Length.node.",
+               "abs_norm_median_distance","median_distance")
 str(bud.proleptic$fate)#glm family binomial
 
 #model1
-model = multinom(fate ~ median_distance + rank_node + normal_distance +Length + Length.node., data = bud.proleptic)
+model = multinom(fate ~ Length +rank_node +Length.node.+abs_norm_median_distance+
+                   median_distance, data = bud.proleptic)
 summary(model)$AIC
 #AIC:1560.052
 exp(coef(model))
@@ -19,10 +21,12 @@ exp(coef(model))
 z <- summary(model)$coefficients / summary(model)$standard.errors
 p <- (1 - pnorm(abs(z), 0, 1)) * 2
 p
-#renove Length
+#remove Length
+parameters=parameters[-1]
 
 #model2
-model = multinom(fate ~ median_distance + rank_node + normal_distance  + Length.node., data = bud.proleptic)
+model = multinom(fate ~ rank_node +Length.node.+abs_norm_median_distance+
+                   median_distance, data = bud.proleptic)
 summary(model)$AIC
 #AIC:1575.955
 exp(coef(model))
@@ -30,10 +34,12 @@ exp(coef(model))
 z <- summary(model)$coefficients / summary(model)$standard.errors
 p <- (1 - pnorm(abs(z), 0, 1)) * 2
 p
-#renove normal distance
+#remove abs_norm_median_distance
+parameters=parameters[-3]
 
 #model3
-model = multinom(fate ~ median_distance + rank_node   + Length.node., data = bud.proleptic)
+model = multinom(fate ~ rank_node +Length.node.+
+                   median_distance, data = bud.proleptic)
 summary(model)$AIC
 #AIC:1657.289
 exp(coef(model))
@@ -42,9 +48,11 @@ z <- summary(model)$coefficients / summary(model)$standard.errors
 p <- (1 - pnorm(abs(z), 0, 1)) * 2
 p
 #remove length node
+parameters=parameters[-2]
 
 #model4
-model = multinom(fate ~ median_distance + rank_node, data = bud.proleptic)
+model = multinom(fate ~ rank_node +
+                   median_distance, data = bud.proleptic)
 summary(model)$AIC
 #AIC:1657.289
 exp(coef(model))
@@ -52,7 +60,8 @@ exp(coef(model))
 z <- summary(model)$coefficients / summary(model)$standard.errors
 p <- (1 - pnorm(abs(z), 0, 1)) * 2
 p
-#remove media_distance
+#remove median_distance
+parameters=parameters[-2]
 
 #model5
 model = multinom(fate ~ rank_node, data = bud.proleptic)
@@ -92,7 +101,7 @@ z <- summary(model)$coefficients / summary(model)$standard.errors
 p <- (1 - pnorm(abs(z), 0, 1)) * 2
 p
 
-#create polinomial with rank less than 16
+#create polynomial with rank less than 16
 data.poly = bud.proleptic[bud.proleptic$rank_node <= 16, ]
 rank_node = data.poly$rank_node
 data.poly = cbind(data.poly,
@@ -112,6 +121,10 @@ summary(model)
 
 str(data.poly)
 exp(coef(model))
+pred=as.data.frame(predict(model, "probs", newdata=data.poly))
+pred_B=pred$B
+pred_V=pred$V
+pred_M=pred$M
 #computing p value
 z <- summary(model)$coefficients / summary(model)$standard.errors
 p <- (1 - pnorm(abs(z), 0, 1)) * 2

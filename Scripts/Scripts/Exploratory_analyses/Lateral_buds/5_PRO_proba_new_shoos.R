@@ -8,21 +8,21 @@ library(gridExtra)
 
 #visualize plot
 str(MV.bud.PRO)
-MV.bud.PRO$presence_new_shoots=factor(MV.bud.PRO$presence_new_shoots)
-plot(MV.bud.PRO$presence_new_shoots~MV.bud.PRO$Length)
-plot(MV.bud.PRO$presence_new_shoots~MV.bud.PRO$rank_node)
-plot(MV.bud.PRO$presence_new_shoots~MV.bud.PRO$fate)
-plot(MV.bud.PRO$presence_new_shoots~MV.bud.PRO$Length.node.)
-plot(MV.bud.PRO$presence_new_shoots~MV.bud.PRO$tot_buds)
-plot(MV.bud.PRO$presence_new_shoots~MV.bud.PRO$m)
-plot(MV.bud.PRO$presence_new_shoots~MV.bud.PRO$v)
-plot(MV.bud.PRO$presence_new_shoots~MV.bud.PRO$siblings_mv)
-plot(MV.bud.PRO$presence_new_shoots~MV.bud.PRO$distance_abs)
-plot(MV.bud.PRO$presence_new_shoots~MV.bud.PRO$median_distance)
-plot(MV.bud.PRO$presence_new_shoots~MV.bud.PRO$median_distance_norm)
-plot(MV.bud.PRO$presence_new_shoots~MV.bud.PRO$normal_distance)
+MV.bud.PRO$nb_new_shoots=factor(MV.bud.PRO$nb_new_shoots)
+plot(MV.bud.PRO$nb_new_shoots~MV.bud.PRO$Length)
+plot(MV.bud.PRO$nb_new_shoots~MV.bud.PRO$rank_node)
+plot(MV.bud.PRO$nb_new_shoots~MV.bud.PRO$fate)
+plot(MV.bud.PRO$nb_new_shoots~MV.bud.PRO$Length.node.)
+plot(MV.bud.PRO$nb_new_shoots~MV.bud.PRO$tot_buds)
+plot(MV.bud.PRO$nb_new_shoots~MV.bud.PRO$m)
+plot(MV.bud.PRO$nb_new_shoots~MV.bud.PRO$v)
+plot(MV.bud.PRO$nb_new_shoots~MV.bud.PRO$siblings_mv)
+plot(MV.bud.PRO$nb_new_shoots~MV.bud.PRO$abs_median_distance)
+plot(MV.bud.PRO$nb_new_shoots~MV.bud.PRO$median_distance)
+plot(MV.bud.PRO$nb_new_shoots~MV.bud.PRO$norm_median_distance)
+plot(MV.bud.PRO$nb_new_shoots~MV.bud.PRO$abs_norm_median_distance)
 #seems that rank influences the fate
-from_MV = table(MV.bud.PRO$rank_node, MV.bud.PRO$presence_new_shoots, MV.bud.PRO$fate)#all shoots
+from_MV = table(MV.bud.PRO$rank_node, MV.bud.PRO$nb_new_shoots, MV.bud.PRO$fate)#all shoots
 from_V = from_MV[, , "V"]#fate=V
 from_M = from_MV[, , "M"]#fate=M
 #relative frequency table of childs from M and V in proleptic shoots per each rank node
@@ -73,5 +73,3 @@ legend(
   col = col[c(2, 3)]
 )
 dev.off()
-
-

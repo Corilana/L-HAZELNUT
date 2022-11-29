@@ -25,10 +25,10 @@ plot(MV.bud.PRO$length2yo.cm.~MV.bud.PRO$siblings_mv,pch=19)
 #frequency table of LENGTH OF childs fromV in proleptic shoots per each rank node
 new_shoots = MV.bud.PRO[MV.bud.PRO$nb_new_shoots != 0, ]
 new_shoots.rank = table(new_shoots$rank_node, new_shoots$length.newshoots, new_shoots$fate)
-new_shoots.rank
+head(new_shoots.rank)
 fromV = new_shoots.rank[, , "V"]#developed from v
 fromV.matrix=as.data.frame.matrix(fromV)
-print(fromV.matrix)
+head(fromV.matrix)
 
 #graph
 png("Outputs/Plots/6_PRO_fromV_newshootclass.png",

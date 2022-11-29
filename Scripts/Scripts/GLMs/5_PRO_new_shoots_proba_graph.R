@@ -9,25 +9,25 @@ library(RColorBrewer)
 library(plotrix)
 
 #create categories for median distance norm
-summary(MV.bud.PRO$median_distance_norm)
-str(MV.bud.PRO$presence_new_shoots)
-MV.bud.PRO$presence_new_shoots=as.numeric(as.character(MV.bud.PRO$presence_new_shoots))
+summary(MV.bud.PRO$norm_median_distance)
+str(MV.bud.PRO$nb_new_shoots)
+MV.bud.PRO$nb_new_shoots=as.numeric(as.character(MV.bud.PRO$nb_new_shoots))
 nline = dim(MV.bud.PRO)[1]
 a = -0.5
 b = -0.25
 c = 0.25
 d = 0.5
 for (i in 1:nline) {
-  if (MV.bud.PRO[i, "median_distance_norm"] >= a &
-      MV.bud.PRO[i, "median_distance_norm"] < b) {
+  if (MV.bud.PRO[i, "norm_median_distance"] >= a &
+      MV.bud.PRO[i, "norm_median_distance"] < b) {
     MV.bud.PRO[i, "class_distance"] = "proximal"
   }
-  if (MV.bud.PRO[i, "median_distance_norm"] >= b &
-      MV.bud.PRO[i, "median_distance_norm"] <= c) {
+  if (MV.bud.PRO[i, "norm_median_distance"] >= b &
+      MV.bud.PRO[i, "norm_median_distance"] <= c) {
     MV.bud.PRO[i, "class_distance"] = "median"
   }
-  if (MV.bud.PRO[i, "median_distance_norm"] > c &
-      MV.bud.PRO[i, "median_distance_norm"] <= d) {
+  if (MV.bud.PRO[i, "norm_median_distance"] > c &
+      MV.bud.PRO[i, "norm_median_distance"] <= d) {
     MV.bud.PRO[i, "class_distance"] = "distal"
   }
 }
@@ -44,8 +44,8 @@ for (j in levels(MV.bud.PRO$class_distance)) {
     for (z in unique(df$siblings_mv)) {
       siblings_mv = z
       dx = df[df$siblings_mv == z, ]
-      av = mean(dx$presence_new_shoots)
-      se = sd(dx$presence_new_shoots) / sqrt(length(dx$presence_new_shoots))
+      av = mean(dx$nb_new_shoots)
+      se = sd(dx$nb_new_shoots) / sqrt(length(dx$nb_new_shoots))
       tot = cbind(position,fate, siblings_mv, av, se)
       prop = rbind(prop, tot)
     }
@@ -70,7 +70,7 @@ for (j in c(0.5, 0.25, 0, -0.25,-0.5)) {
 #rename columns
 df
 str(df)
-names(df)[-c(1,2)] = "median_distance_norm"
+names(df)[-c(1,2)] = "norm_median_distance"
 conf_int = df
 #predict model according to normal_median, for each type of sequence of distance (0-10)
 for (i in 3:ncol(df)) {

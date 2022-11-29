@@ -8,23 +8,23 @@ library(plotfunctions)
 library(RColorBrewer)
 library(plotrix)
 
-summary(MV.bud.PRO$median_distance_norm)
+summary(MV.bud.PRO$norm_median_distance)
 nline = dim(MV.bud.PRO)[1]
 a = -0.5
 b = -0.25
 c = 0.25
 d = 0.5
 for (i in 1:nline) {
-  if (MV.bud.PRO[i, "median_distance_norm"] >= a &
-      MV.bud.PRO[i, "median_distance_norm"] < b) {
+  if (MV.bud.PRO[i, "norm_median_distance"] >= a &
+      MV.bud.PRO[i, "norm_median_distance"] < b) {
     MV.bud.PRO[i, "class_distance"] = "proximal"
   }
-  if (MV.bud.PRO[i, "median_distance_norm"] >= b &
-      MV.bud.PRO[i, "median_distance_norm"] <= c) {
+  if (MV.bud.PRO[i, "norm_median_distance"] >= b &
+      MV.bud.PRO[i, "norm_median_distance"] <= c) {
     MV.bud.PRO[i, "class_distance"] = "median"
   }
-  if (MV.bud.PRO[i, "median_distance_norm"] > c &
-      MV.bud.PRO[i, "median_distance_norm"] <= d) {
+  if (MV.bud.PRO[i, "norm_median_distance"] > c &
+      MV.bud.PRO[i, "norm_median_distance"] <= d) {
     MV.bud.PRO[i, "class_distance"] = "distal"
   }
 }
@@ -53,7 +53,7 @@ str(prop)
 prop[1:2] = lapply(prop[1:2], as.factor)
 prop[3:5] = lapply(prop[3:5], as.numeric)
 str(prop)
-#create a sequence with random numbers between 1 and maximum sib
+#create a sequence with random numbers between 1 and maximum distance
 df = data.frame(Length = rep(seq(
   min(prop$Length),
   max(prop$Length),
@@ -68,7 +68,7 @@ for (j in c(0.5, 0.25, 0, -0.25,-0.5)) {
 #rename columns
 head(df)
 str(df)
-names(df)[-c(1, 2)] = "median_distance_norm"
+names(df)[-c(1, 2)] = "norm_median_distance"
 conf_int = df
 #predict model according to normal_median, for each type of sequence of distance (0-10)
 for (i in 3:ncol(df)) {
@@ -89,7 +89,7 @@ head(df)
 #quindi metto prima +0.5(distal) e poi proximal(-0.5)
 colnames(df)[8:12] = c(0.5, 0.25, 0, -0.25, -0.5)
 #confidence intervel
-for (i in grep("median_distance_norm", colnames(df))) {
+for (i in grep("norm_median_distance", colnames(df))) {
   pred = predict(model, newdata = conf_int[c(1, 2, i)], se.fit = T)
   lw = pred$fit + qnorm(0.025) * pred$se.fit
   up = pred$fit + qnorm(0.975) * pred$se.fit

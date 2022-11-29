@@ -1,7 +1,7 @@
 5_new_shoots_proba_SYL
 
 Call:
-glm(formula = presence_new_shoots ~ fate:m + fate:v, family = "binomial", 
+glm(formula = nb_new_shoots ~ fate:m + fate:v, family = "binomial", 
     data = MV.bud.SYL)
 
 Deviance Residuals: 

@@ -13,8 +13,8 @@ bud= read.csv("Data/Modified/foundnxtyr_bud_lev.csv",
 str(met)
 met$class = factor(met$class, c("Sh", "Me", "Lo", "VLo"))
 bud$class = factor(bud$class, c("Sh", "Me", "Lo", "VLo"))
-met = dplyr::mutate(met, "median_distance_norm" = NA, .after = median_distance)
-met$median_distance_norm = round((met$median_distance /
+met = dplyr::mutate(met, "norm_median_distance" = NA, .after = median_distance)
+met$norm_median_distance = round((met$median_distance /
                                     met$Length.node.),
                                  1)
 str(bud)
@@ -28,7 +28,6 @@ met.sylleptic=droplevels(met[met$shoot_type == "SYLLEPTIC", ])
 met.sylleptic = dplyr::mutate(met.sylleptic, "tot_buds_m.v" = NA, .after = tot_buds_m.v.b.c)
 met.sylleptic$tot_buds_m.v=met.sylleptic$m+met.sylleptic$v
 names(met.sylleptic)
-met.sylleptic=met.sylleptic[-18]
 colnames(met.sylleptic)[c(2, 7, 8)] = c("parent_length_cm",
                                             "parent_length_node",
                                             "parent_rank_node")
@@ -37,8 +36,8 @@ colnames(met.sylleptic)[c(2, 7, 8)] = c("parent_length_cm",
 bud.sylleptic=droplevels(bud[bud$shoot_type=="SYLLEPTIC",])
 names(bud.sylleptic)
 bud.sylleptic=bud.sylleptic[-18]
-bud.sylleptic = dplyr::mutate(bud.sylleptic, "median_distance_norm" = NA, .after = median_distance)
-bud.sylleptic$median_distance_norm = round((bud.sylleptic$median_distance /
+bud.sylleptic = dplyr::mutate(bud.sylleptic, "norm_median_distance" = NA, .after = median_distance)
+bud.sylleptic$norm_median_distance = round((bud.sylleptic$median_distance /
                                               bud.sylleptic$Length.node.),
                                            1)
 
@@ -52,7 +51,7 @@ MV.bud.SYL$fate = factor(MV.bud.SYL$fate, c("V", "M"))
 # proleptic ---------------------------------------------------------------
 #met level
 #remove buds in sylleptic shoots
-met.proleptic=droplevels(met[met$shoot_type == "PROLEPTIC", ])
+met.proleptic=met
 colnames(met.proleptic)[13] = "sylleptic"
 names(met.proleptic)
 for (q in 1:nrow(met.proleptic)) {
@@ -73,7 +72,7 @@ colnames(bud.proleptic)
 bud.proleptic$fate = factor(bud.proleptic$fate, c("V", "B", "M"))
 
 str(bud.proleptic)
-bud.proleptic$median_distance_norm = round((bud.proleptic$median_distance /
+bud.proleptic$norm_median_distance = round((bud.proleptic$median_distance /
                                               bud.proleptic$Length.node.),
                                            1)
 

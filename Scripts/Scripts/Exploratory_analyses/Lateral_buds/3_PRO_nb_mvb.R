@@ -7,9 +7,9 @@ source("Scripts/Modify_dataset/import_dataset.R")
 plot(met.proleptic$tot_buds_mvb~met.proleptic$Length,pch=19)
 plot(met.proleptic$tot_buds_mvb~met.proleptic$rank_node,pch=19)
 plot(met.proleptic$tot_buds_mvb~met.proleptic$Length.node.,pch=19)
-plot(met.proleptic$tot_buds_mvb~met.proleptic$distance_abs,pch=19)
-plot(met.proleptic$tot_buds_mvb~met.proleptic$normal_distance,pch=19)
+plot(met.proleptic$tot_buds_mvb~met.proleptic$abs_median_distance,pch=19)
+plot(met.proleptic$tot_buds_mvb~met.proleptic$abs_norm_median_distance,pch=19)
 plot(met.proleptic$tot_buds_mvb~met.proleptic$median_distance,pch=19)
-plot(met.proleptic$tot_buds_mvb~met.proleptic$median_distance_norm,pch=19)
+plot(met.proleptic$tot_buds_mvb~met.proleptic$norm_median_distance,pch=19)
 #seems not to be correlated
 

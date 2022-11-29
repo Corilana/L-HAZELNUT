@@ -10,11 +10,11 @@ library(tidyr)
 #visualize plot
 plot(fate~parent_length_cm,MV.bud.SYL)
 plot(fate~parent_rank_node,MV.bud.SYL)
-plot(fate~normal_distance,MV.bud.SYL)
-plot(fate~distance_abs,MV.bud.SYL)
+plot(fate~abs_norm_median_distance,MV.bud.SYL)
+plot(fate~abs_median_distance,MV.bud.SYL)
 plot(fate~median_distance,MV.bud.SYL)
 plot(fate~siblings_mv,MV.bud.SYL)
-plot(fate~median_distance_norm,MV.bud.SYL)
+plot(fate~norm_median_distance,MV.bud.SYL)
 #doesn't seems to have a correlation 
 
 #frequency table of buds in sylleptic shoots per each class (count )
@@ -33,6 +33,7 @@ print(bud.type)
 
 #just m and v (that should be the only buds in sylleptic)
 bud.mv = bud.type[c(1:3, 6)]
+bud.mv$sums=bud.mv$nb_v+bud.mv$nb_m
 #write pdf with the table
 pdf("Outputs/Tables/4_SYL_mv~class.pdf",height = 3,width = 5 )
 grid.table(bud.mv)
@@ -46,7 +47,7 @@ for (i in 2:3) {
     print(colnames(bud.mv)[i])
     print(pairwise.prop.test(bud.mv[1:4,i], bud.mv[1:4,4]))
   } else {
-    print(paste0(colnames(TAB_SYL_MV)[i]," ","p.value= ",test$p.value))
+    print(paste0(colnames(bud.mv)[i]," ","p.value= ",test$p.value))
   }
 }
 
