@@ -17,16 +17,13 @@ singularity run --app -e console VPlants.simg
 
 %labels
 AUTHOR Jean-Baptiste Durand
-VERSION="1.0"
+VERSION="1.2"
 VCS-URL="git@github.com:jbdurand/AppleCultivarsTreatments.git"
-VCS-REF="de0614ecd82043bd297d7b9a6c9e646ee1b92369"
+VCS-REF="ba844a5c9ce39eb495b6ffdb909ff3eaef8e17c1"
 BUILD.CMD="sudo singularity build VPlants.simg VPlants.def"
 
 %setup
 mkdir -p /mnt/devlp/
-export R_VERSION="3.4.4-1xenial0"
-# R repository mirror to install extra packages
-export R_REPOS="https://stat.ethz.ch"
 
 # git clone git@github.com:jbdurand/AppleCultivarsTreatments.git
 
@@ -45,7 +42,7 @@ export LANG=C.UTF-8 LC_ALL=C.UTF-8
 
 apt update && apt install -y gedit && \
     apt install -y git
-    
+
 # Install packages for openalea / vplants compilation
 apt install -y freeglut3-dev
 apt install -y libboost-python1.58.0 libboost1.58-dev libboost-python1.58-dev
@@ -128,7 +125,7 @@ python2 setup.py install
 # Install visu-scanpath
 python2 -m pip install Pillow==4.3.0
 
-export R_VERSION="3.4.4-1xenial0"
+export R_VERSION="3.6.3-1xenial"
 # R repository mirror to install extra packages
 # export R_REPOS="https://stat.ethz.ch"
 export R_REPOS="https://pbil.univ-lyon1.fr"
@@ -137,26 +134,68 @@ export R_REPOS="https://pbil.univ-lyon1.fr"
 apt install -y software-properties-common apt-transport-https
 apt update
 
-####################"
-## NB. The following command seems to apply to host; change this
-####################"
-
-add-apt-repository "deb $R_REPOS/CRAN/bin/linux/ubuntu xenial/"
+add-apt-repository -y "deb $R_REPOS/CRAN/bin/linux/ubuntu xenial-cran35/"
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 51716619E084DAB9
 apt update
 apt install -y r-base=$R_VERSION
-
+apt install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+apt install -y build-essential
+apt install -y libtool libtool-bin
+apt install -y libfontconfig1-dev
+add-apt-repository -y "ppa:cran/libgit2"
+add-apt-repository -y ppa:ubuntugis/ppa && apt-get update
+add-apt-repository -y ppa:nextgis/ppa && apt-get update 
+apt install -y libssh2-1-dev libgit2-dev
+apt install -y libharfbuzz-dev libfribidi-dev
+apt install -y libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev 
+apt install -y cmake
+apt remove -y gdal-bin
+apt remove -y --auto-remove gdal-bin
+apt purge -y gdal-bin
+apt purge -y --auto-remove gdal-bin 
+apt update
+apt install -y gdal-bin proj-bin libgdal-dev=2.4.0+10-0xenial1 libproj-dev=4.9.2-2
+apt install -y libudunits2-dev=2.2.20-1 libgeos-dev=3.7.0+4-0xenial1
+apt install -y libgdal1-dev 
+apt install -y libpq-dev
 
 mkdir /root/r_analysis
 cd /root/r_analysis
 export R_CONTRIBS="https://cloud.r-project.org"
 export TAR="/bin/tar"
+export GDAL_DATA="/usr/share/gdal/"
 
-# NB / TODO: improve installation with nloptr (and check associated requirements)
+# Use packageVersion to find version of installed package
 
-echo 'install.packages("lme4", repos="'$R_CONTRIBS'")' >> r_install.txt
-echo 'install.packages("nlme", repos="'$R_CONTRIBS'")' >> r_install.txt
-echo 'install.packages("MCMCglmm", repos="'$R_CONTRIBS'")' >> r_install.txt
+echo 'install.packages("devtools", repos="'$R_CONTRIBS'")' >> r_install.txt
+echo 'library("devtools")' >> r_install.txt
+echo 'install_version("nloptr", version="2.0.3", repos="'$R_CONTRIBS'")' >> r_install.txt
+echo 'install_version("lme4", version="1.1.31", repos="'$R_CONTRIBS'")' >> r_install.txt
+echo 'install_version("nlme", version="3.1.158", repos="'$R_CONTRIBS'")' >> r_install.txt
+echo 'install_version("MCMCglmm", version="2.34", repos="'$R_CONTRIBS'")' >> r_install.txt
+echo 'install_version("permute", version="0.9.7", repos="'$R_CONTRIBS'")' >> r_install.txt
+echo 'install_version("doParallel", version="1.0.17", repos="'$R_CONTRIBS'")' >> r_install.txt
+echo 'install_version("rgeos", version="0.5.9", repos="'$R_CONTRIBS'")' >> r_install.txt
+echo 'install_version("rgdal", version="1.6.2", repos="'$R_CONTRIBS'")' >> r_install.txt
+echo 'devtools::install_github("IRkernel/IRkernel", ref="1.2", upgrade="always")' >> r_install.txt
+# R kernel for jupyter
+# Alternative to install.packages("devtools") + devtools::install_github("IRkernel/IRkernel"):
+echo 'IRkernel::installspec(prefix = "/usr/local", user = FALSE)' >> r_install.txt
+
+Rscript r_install.txt
+
+
+echo 'library("devtools")' > r_install.txt
+echo 'Sys.setenv(GDAL_DATA = "/usr/share/gdal/2.4/")' >> r_install.txt
+echo 'install_version("sf", version="1.0.9", repos="'$R_CONTRIBS'")' >> r_install.txt
+echo 'remotes::install_version("INLA", version="18.07.12",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)' >> r_install.txt
+
+Rscript r_install.txt
+
+echo 'library("devtools")' > r_install.txt
+echo 'Sys.setenv(GDAL_DATA = "/usr/share/gdal/2.4/")' >> r_install.txt
+echo 'install_version("inlabru", version="2.6.0", repos="'$R_CONTRIBS'")' >> r_install.txt
+
 Rscript r_install.txt
 
 

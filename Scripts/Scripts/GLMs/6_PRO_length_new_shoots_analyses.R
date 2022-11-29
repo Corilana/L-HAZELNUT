@@ -2,6 +2,11 @@
 #AIM: length of new shoots from buds in proleptic buds
 #data: DERUTA 2020
 #PhD: Francesca Grisafi
+<<<<<<< HEAD
+=======
+#Run from "HazelnutFSPM/Scripts"
+
+>>>>>>> d13496fb0032f6db9ddebe06009d26901e80b1cc
 source("Scripts/Modify_dataset/import_dataset.R")
 
 MV.bud.PRO=MV.bud.PRO[!is.na(MV.bud.PRO$length2yo.cm.),]
