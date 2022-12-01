@@ -22,6 +22,12 @@ model = glm(
   family = "gaussian",
   data = MV.bud.PRO
 )
+# JB: note that this is equivalent to
+# model = lm(
+#   length2yo.cm. ~ Length + rank_node + distance_abs +
+#     median_distance_norm + siblings_mv + normal_distance + fate,
+#   data = MV.bud.PRO
+# )
 summary(model)
 #AIC:3336.9
 #remove siblings
