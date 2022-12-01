@@ -18,8 +18,8 @@ plot(tot$nu~tot$Length)
 plot(tot$nu~tot$class)
 plot(tot$nu~tot$Length.node.)
 plot(tot$nu~tot$median_distance)
-plot(tot$nu~tot$normal_distance)
-plot(tot$nu~tot$distance_abs)
+plot(tot$nu~tot$abs_norm_median_distance)
+plot(tot$nu~tot$abs_median_distance)
 plot(tot$nu~tot$siblings_mv)
 plot(tot$nu~tot$shoot_type)
 plot(tot$nu~tot$length2yo.cm.)
@@ -41,7 +41,7 @@ for (rank in nliner) {
   df = rbind(df,
              cbind(rank, n_sh, n_m, n_cls, allegagione, n_nuts, nut_set))
 }
-df
+head(df)
 
 # graph
 png(

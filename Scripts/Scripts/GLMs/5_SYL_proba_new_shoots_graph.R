@@ -11,14 +11,14 @@ V = droplevels(MV.bud.SYL[MV.bud.SYL$fate == "V", ])
 
 #create real data
 #relative frequency of new shoots from M with other M
-M_m = data.frame("new shoots" = prop.table(table(M$m, M$presence_new_shoots), 1)[, 2])
+M_m = data.frame("new shoots" = prop.table(table(M$m, M$nb_new_shoots), 1)[, 2])
 #relative frequency of new shoots from V with other M
-V_m = data.frame("new shoots" = prop.table(table(V$m, V$presence_new_shoots), 1)[, 2])
+V_m = data.frame("new shoots" = prop.table(table(V$m, V$nb_new_shoots), 1)[, 2])
 
 #relative frequency of new shoots from M with other V
-M_v = data.frame("new shoots" = prop.table(table(M$v, M$presence_new_shoots), 1)[, 2])
+M_v = data.frame("new shoots" = prop.table(table(M$v, M$nb_new_shoots), 1)[, 2])
 #relative frequency of new shoots from M with other V
-V_v = data.frame("new shoots" = prop.table(table(V$v, V$presence_new_shoots), 1)[, 2])
+V_v = data.frame("new shoots" = prop.table(table(V$v, V$nb_new_shoots), 1)[, 2])
 
 #graph:
 png("Outputs/Plots/5_SYL_proba_new_shoots.png",width=1200, height=900, res=150)# save plot
@@ -98,14 +98,14 @@ dev.off()
 #in the previous graph we used (mean$nb_buds)
 
 #generate a glm without "other V"
-mod1 = glm(presence_new_shoots ~ fate * m, family = "binomial", data = MV.bud.SYL)
+mod1 = glm(nb_new_shoots ~ fate * m, family = "binomial", data = MV.bud.SYL)
 summary(mod1)
 #generate a glm without "other M"
-mod2 = glm(presence_new_shoots ~ fate * v, family = "binomial", data = MV.bud.SYL)
+mod2 = glm(nb_new_shoots ~ fate * v, family = "binomial", data = MV.bud.SYL)
 summary(mod2)
 
 # #graph
-# png("imagines/proba_presence_new_shoots_syll2.png",width=1200, height=900, res=150)# save plot
+# png("imagines/proba_nb_new_shoots_syll2.png",width=1200, height=900, res=150)# save plot
 # par(mfrow=c(1,2))
 # cols<-brewer.pal(n=3,name="Set2")
 # par(mar=c(5,4,1,0)+0.1)

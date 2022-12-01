@@ -144,7 +144,6 @@ def StartEach():#non toccare MAI
 
 def get_actual_year_ID(nb_months):
   iteration=getIterationNb()
-  print nb_months
   year_id = int(iteration/nb_months)
   return year_id
 

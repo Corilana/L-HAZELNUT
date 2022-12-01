@@ -6,19 +6,20 @@ source("Scripts/Modify_dataset/import_dataset.R")
 source("Scripts/GLMs/Functions/permutation_glm.R")
 
 names(MV.bud.SYL)
-parameters = c("parent_length_cm","parent_rank_node","normal_distance", "siblings_mv","median_distance")
+parameters = c("parent_length_cm","parent_rank_node",
+               "abs_norm_median_distance", "siblings_mv","median_distance")
 str(MV.bud.SYL$fate)#glm family binomial
 MV.bud.SYL$fate=factor(MV.bud.SYL$fate, levels=c("M","V"))
 
 #model1
 model = glm(fate ~ parent_length_cm + parent_rank_node +
-    siblings_mv + normal_distance+median_distance,
+    abs_norm_median_distance+siblings_mv + median_distance,
   family = "binomial",
   data = MV.bud.SYL
 )
 summary(model)
 #AIC:703.47
-#remove normal_distance
+#remove abs_norm_median_distance
 parameters=parameters[-3]
 
 #model2

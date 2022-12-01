@@ -7,55 +7,66 @@ source("Scripts/Modify_dataset/import_dataset.R")
 source("Scripts/GLMs/Functions/permutation_glm.R")
 #according to exploratory
 names(met)
-parameters <- c("normal_distance","median_distance","distance_abs", "median_distance_norm")#select intresting parameters
+parameters <- c("abs_norm_median_distance","median_distance","abs_median_distance", "norm_median_distance")#select intresting parameters
 #the first term of factor is taken as "failure" the second as "succes"
 str(met)#binomial
 
 #model1
 model= glm(
-  shoot_type ~normal_distance + median_distance+distance_abs+ median_distance_norm,
+  shoot_type ~abs_norm_median_distance + median_distance+abs_median_distance+ norm_median_distance,
   family = "binomial",
   data = met
 )
 summary(model)
 #AIC:1038.7
-#remove distance_abs
+#remove abs_median_distance
 parameters =parameters[-3]
 
 #model2
 model= glm(
-  shoot_type ~normal_distance + median_distance+ median_distance_norm,
+  shoot_type ~abs_norm_median_distance + median_distance+ norm_median_distance,
   family = "binomial",
   data = met
 )
 summary(model)
 #AIC:1038
 #permute median_distance
+<<<<<<< HEAD
+# permutation(dip="shoot_type",predictors = parameters[-2],
+            #perm = parameters[2],family = "binomial",data = met)
+=======
 permutation(dip="shoot_type",predictors = parameters[-2],
             perm = parameters[2],family = "binomial",data = met)
+>>>>>>> d13496fb0032f6db9ddebe06009d26901e80b1cc
 #better permutations: 13>10
 #remove median_distance
 parameters =parameters[-2]
 
 #model3
 model= glm(
-  shoot_type ~normal_distance + median_distance_norm,
+  shoot_type ~abs_norm_median_distance + norm_median_distance,
   family = "binomial",
   data = met
 )
 summary(model)
 #AIC:1045.9
-#remove median_distance_norm
+#remove norm_median_distance
 parameters=parameters[-2]
 
 #FINAL MODEL
 model= glm(
-  shoot_type ~normal_distance,
+  shoot_type ~abs_norm_median_distance,
   family = "binomial",
   data = met
 )
 summary(model)
 #AIC:1046.8
+#coefficient
+print(coef(model))
+#odds (succes/insucces)
+print(exp(coef(model)))
+#probabilities (odds/1+odds)
+print(exp(coef(model)) / (1 + exp(coef(model))))
 
 #save outputs
 out=capture.output(summary(model))

@@ -14,13 +14,13 @@ library(tidyr)
 str(MV.bud.SYL)
 plot(length2yo.cm.~parent_length_cm,MV.bud.SYL,pch=19)
 plot(length2yo.cm.~parent_rank_node,MV.bud.SYL,pch=19)
-plot(length2yo.cm.~normal_distance,MV.bud.SYL,pch=19)
-plot(length2yo.cm.~distance_abs,MV.bud.SYL,pch=19)
+plot(length2yo.cm.~abs_norm_median_distance,MV.bud.SYL,pch=19)
+plot(length2yo.cm.~abs_median_distance,MV.bud.SYL,pch=19)
 plot(length2yo.cm.~fate,MV.bud.SYL,pch=19)
 plot(length2yo.cm.~m,MV.bud.SYL,pch=19)
 plot(length2yo.cm.~v,MV.bud.SYL,pch=19)
 plot(length2yo.cm.~siblings_mv, MV.bud.SYL, pch=19)
-plot(length2yo.cm.~median_distance_norm,MV.bud.SYL,pch=19)
+plot(length2yo.cm.~norm_median_distance,MV.bud.SYL,pch=19)
 #seems not to be correlated
 #frequency table of combination neweral child in sylleptic shoots per each rank node
 lne = grep("length.newshoots", colnames(MV.bud.SYL))#adress the column with the class of the child

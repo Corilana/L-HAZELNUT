@@ -1,7 +1,6 @@
 #AIM: how many nuts?
 #data: DERUTA 2020
 #PhD: Francesca Grisafi
-
 source("Scripts/Modify_dataset/import_dataset.R")
 
 # library(stats)

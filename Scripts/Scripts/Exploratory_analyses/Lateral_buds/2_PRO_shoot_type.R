@@ -10,12 +10,12 @@ library(tidyr)
 
 #AIM1: discover where are sylleptic shoots (metamer level) --------------
 #visualize plot
-plot(shoot_type~Length,met)
-plot(shoot_type~rank_node,met)
-plot(shoot_type~median_distance,met)
-plot(shoot_type~normal_distance,met)
-plot(shoot_type~distance_abs,met)
-plot(shoot_type~median_distance_norm,met)
+plot(shoot_type~Length,met.proleptic)
+plot(shoot_type~rank_node,met.proleptic)
+plot(shoot_type~median_distance,met.proleptic)
+plot(shoot_type~abs_norm_median_distance,met.proleptic)
+plot(shoot_type~abs_median_distance,met.proleptic)
+plot(shoot_type~norm_median_distance,met.proleptic)
 
 #it seems that sylleptic shoots are more from rank 4 to 8 
 
@@ -42,6 +42,7 @@ for (i in 1:nline) {
 colnames(class.length)[7:10]
 colnames(class.length)[7:10] = c("%sylleptic", "%V", "%M", "%B")
 
+print(class.length)
 #write pdf with the table
 pdf("Outputs/Tables/PRO_obs~class.pdf",height = 8,width = 10)
 grid.table(class.length)
@@ -144,7 +145,7 @@ legend("topleft", legend=c("%sylleptic", "%V", "%M", "%B"),lty=1, cex= 0.8, pch=
 dev.off()
 
 # AIM4: SUM of observations (buds + sylleptic shoots) in proleptic --------
-freq.rank = table(met.proleptic$rank_node, met.proleptic$tot_buds_mvb)
+freq.rank = table(met$rank_node, met$tot_buds_m.v.b.c)
 print(freq.rank)
 
 #graph

@@ -56,11 +56,11 @@ for (i in nshoot) {
   }
 }
 
-metamer = dplyr::mutate(metamer, "distance_abs" = NA, .after = median_distance)#add new column for the distance
-metamer$distance_abs = abs(metamer$median_distance)
+metamer = dplyr::mutate(metamer, "abs_median_distance" = NA, .after = median_distance)#add new column for the distance
+metamer$abs_median_distance = abs(metamer$median_distance)
 
-metamer = dplyr::mutate(metamer, "normal_distance" = NA, .before = distance_abs)#add new column for the distance
-metamer$normal_distance = round(metamer$distance_abs / metamer$`Length(node)`, digits = 2)
+metamer = dplyr::mutate(metamer, "abs_norm_median_distance" = NA, .before = abs_median_distance)#add new column for the distance
+metamer$abs_norm_median_distance = round(metamer$abs_median_distance / metamer$`Length(node)`, digits = 2)
 
 # AIM2: type of shoot (SYLLEPTIC or PROLEPTIC) where the metamer comes from -----------------------------------
 nline = dim(metamer)[1]
@@ -94,3 +94,4 @@ for (i in unique(sort(new_shoots$shoot1yo))) {
 write.csv(shoot[1:14], "Data/Modified/shoots_level.csv", row.names = F)
 write.csv(metamer, "Data/Modified/metamer_level.csv", row.names = F)
 write.csv(metamer[!is.na(metamer$nb_new_shoots),], "Data/Modified/foundnxtyr_met_lev.csv", row.names = F)
+

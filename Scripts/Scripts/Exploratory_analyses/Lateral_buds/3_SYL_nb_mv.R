@@ -10,10 +10,10 @@ library(tidyr)
 #visualize plot
 plot(tot_buds_m.v~parent_length_cm,met.sylleptic, pch=19)
 plot(tot_buds_m.v~parent_rank_node,met.sylleptic, pch=19)
-plot(tot_buds_m.v~normal_distance,met.sylleptic, pch=19)
-plot(tot_buds_m.v~distance_abs,met.sylleptic, pch=19)
+plot(tot_buds_m.v~abs_norm_median_distance,met.sylleptic, pch=19)
+plot(tot_buds_m.v~abs_median_distance,met.sylleptic, pch=19)
 plot(tot_buds_m.v~median_distance,met.sylleptic, pch=19)
-plot(tot_buds_m.v~median_distance_norm,met.sylleptic, pch=19)
+plot(tot_buds_m.v~norm_median_distance,met.sylleptic, pch=19)
 #doesn't seems to have a correlation 
 
 sum(met.sylleptic$b)#0

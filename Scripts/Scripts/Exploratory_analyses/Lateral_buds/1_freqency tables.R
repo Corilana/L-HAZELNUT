@@ -29,6 +29,7 @@ for (i in levels(bud$class)) {
   class.length = rbind(class.length, tot)
 }
 
+print(class.length)
 #write pdf with the table
 pdf("Outputs/Tables/freq_class_length.pdf",
     height = 4,
@@ -59,6 +60,7 @@ shoot.type$bud_burst = (shoot.type$new_shoot_from_M + shoot.type$new_shoot_from_
 shoot.type$errors = (shoot.type$new_shoot_from_C + shoot.type$new_shoot_from_B) /
   (shoot.type$nb_new_shoots)
 
+print(shoot.type)
 #write pdf with the table
 pdf("Outputs/Tables/freq_shoot_type.pdf",
     height = 4,
@@ -85,7 +87,7 @@ for (q in 1:nline) {
 }
 TAB_SYL["sums", 2:6] = colSums(TAB_SYL[2:6])#sums each observations(obs)
 TAB_SYL[, "sums"] = rowSums(TAB_SYL[3:6])#sum obserbations per each node
-print(TAB_SYL)
+head(TAB_SYL)
 
 #relative frequency table of buds/shoots in sylleptic shoots per each rank node
 for (i in 1:nline) {

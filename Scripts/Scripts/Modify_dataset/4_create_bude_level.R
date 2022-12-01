@@ -203,5 +203,5 @@ for (i in 1:(nrow(bud) + 1)) {
   }
 }
 #write a bud level df
-names(bud)[22]="presence_new_shoots"
+names(bud)[22]="nb_new_shoots"
 write.csv(bud, "Data/Modified/foundnxtyr_bud_lev.csv", row.names = F)

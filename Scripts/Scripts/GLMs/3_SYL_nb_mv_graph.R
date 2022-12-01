@@ -44,7 +44,7 @@ for (i in seq(0, 0.5, by = 0.1)) {
 }
 names(df)
 #rename columns
-colnames(df)[-1] = "normal_distance"
+colnames(df)[-1] = "abs_norm_median_distance"
 #predict model according to parent length, for each type of sequence of distance (0-10)
 for (i in 1:(ncol(df) - 1)) {
   h = i + 1

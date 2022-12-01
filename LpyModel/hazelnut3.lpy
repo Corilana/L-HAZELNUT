@@ -152,13 +152,9 @@ def get_actual_year_name(nb_months):
   current_year = years[int(year_id)]
   return current_year
 
-def get_month_ID(nb_months):
+def get_month(nb_months):
   iteration=getIterationNb()
   month_id= iteration - ( get_actual_year_ID(nb_months)* nb_months )
-  return month_id
-  
-def get_month_name(nb_months):
-  month_id = get_month_ID(nb_months)
   current_month = months[int(month_id)]
   return current_month
 
@@ -183,7 +179,8 @@ derivation length: (last_year+1-current_year)*nb_months
 production:
 
 ProlBud(length, burstdate,nb_months,mixed):#the starter shoot is proleptic
-  month = get_month_name(nb_months)
+  month = get_month(nb_months)
+  print month
   nbnodes = max(1,shootnbnodesfromlength(length))#number of nodes
   internodelength = length/float(nbnodes)#internode length
   defdiam = float(diameter(length))/10
@@ -231,7 +228,7 @@ ProlBud(length, burstdate,nb_months,mixed):#the starter shoot is proleptic
                     
       
 Syl(length, nb_mv,burstdate,nb_months):
-  month = get_month_name(nb_months)
+  month = get_month(nb_months)
   internodelength = length/(nb_mv+1)
   nb_v = int(ceil(nb_mv*0.52))#proportion of V in sylleptic shoots (box3)
   nb_m = (nb_mv-nb_v)#proportion of M in sylleptic shoots (box3)
@@ -254,7 +251,7 @@ D(d) --> D(d+dd)
 
 interpretation:
 
-Info --> [@2D @M(0.8,0.8) @L(str(get_actual_year_name(nb_months))+" "+str(get_month_name(nb_months))+" "+str(getIterationNb()))]
+Info --> [@2D @M(0.8,0.8) @L(str(get_actual_year_name(nb_months))+" "+str(get_month(nb_months))+" "+str(getIterationNb()))]
 
 
 Internode(l,d,t) :
@@ -264,17 +261,17 @@ Internode(l,d,t) :
 D(d) --> f(d)
 
 Nuts(burstdate,nb_months) :
-  month = get_month_name(nb_months) 
+  month = get_month(nb_months) 
   if month == June and NUTSY:
     produce _(0.2)@Tp(0,0,-1) @Ts(0.2)nF(3,0.22),(7)f(1)@O(1)
 
 Leaf(burstdate,nb_months) :
-  month = get_month_name(nb_months)
+  month = get_month(nb_months)
   if month != September and LEAFY:
     produce ,(2)@g(leafshape, 8)
 
 Catkin(burstdate,nb_months) :
-  month = get_month_name(nb_months) 
+  month = get_month(nb_months) 
   if month != March :
     nproduce EndGC _(0.2),(4) @Tp(0,0,-1) @Ts(0.2) StartGC [nF(5,0.2)][+(30)nF(5,0.2)][-(30)nF(5,0.2)]
     
@@ -294,7 +291,7 @@ def __initialiseContext__(context):
 	Color_7.name = "Color_7"
 	context.turtle.setMaterial(7,Color_7)
 	context.animation_timestep = 0.5
-	scalars = [('SEED', 'Integer', 17, 0, 100), ('LEAFY', 'Bool', True), ('NUTSY', 'Bool', True)]
+	scalars = [('SEED', 'Integer', 17, 0, 100), ('LEAFY', 'Bool', False), ('NUTSY', 'Bool', True)]
 	context["__scalars__"] = scalars
 	for s in scalars:
 		if not s[1] == "Category" : context[s[0]] = s[2]
