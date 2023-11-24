@@ -16,17 +16,3 @@ HAZELNUT DESCRIPTION:
 DATASET:
 -1: recording of 2020 bud fate, length, diameter, number of nodes of 1yo shoots;
 -2: recording of bud fate, lenght, diameter, number of nodes of 1yo shoots born on the shoots analyzed in 2020
-
-
-STEP1 (meeting 21/10/2021): 
-
--analyze bud fate data according to the shoot length category (Sh, Me, Lo, VLo);
-  -are the zone homogeneus? 
-  -is there a common zone composition that is shorter or longer depending on the lenght?
- 
- -let Francesca training with data using some easier old dataset
-
- STEP2 (meeting 28/10/2021):
-
--discussion about datasets
--Francesca first steps with Openalea
