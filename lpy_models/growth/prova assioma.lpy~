@@ -1,0 +1,217 @@
+#import library from python
+from numpy.random import *
+from math import *
+import random
+import numpy
+from datetime import *
+
+#variable to stop the random simulations
+#seed(SEED)
+
+trunklength = 80.
+mixedinternodelength = 0.5
+phyllotaxy = 137.5
+length_axiom= 10.
+#defdiam = 0.7
+#dd = 0.05
+
+#function for the relationship between length in cm and length in 
+def shootnbnodesfromlength(length):
+  return int (1.81062*(length**0.57449))
+
+#probability to have sylleptic (MOD1)
+def has_sylleptic_proba(norm_distance_abs):
+   ec = exp(-0.2711-4.5303*norm_distance_abs)
+   proba = ec/(1+ec)
+   return proba
+
+#binomial function for probability of having sylleptic(MOD1)
+def has_sylleptic(norm_distance_abs):
+   proba = has_sylleptic_proba(norm_distance_abs)
+   return bool(binomial(1,proba,1)[0])
+
+#SYLLEPTIC
+#number of buds inside sylleptic shoots
+def nb_mv_in_sylleptic_lambda(length, norm_distance_abs):
+  latent = 0.806471 + 0.011091 * length - 1.971983 * norm_distance_abs
+  return exp(latent)
+
+#poisson function for number of buds inside sylleptic shoots
+def nb_mv_in_sylleptic(length, norm_distance_abs):
+  lambda_ = nb_mv_in_sylleptic_lambda(length, norm_distance_abs)
+  return max(1,int(poisson(lambda_,1)[0]))
+
+#probability of bursting in sylleptic shoots (MOD4)
+def burst_in_sylleptic_proba(nb_siblings_V, nb_siblings_M, fate='V'):
+  latent = 1.2464 -0.5799*nb_siblings_V 
+  if fate == 'M': latent += -0.7439*nb_siblings_M -0.3292*nb_siblings_V
+  ec = exp(latent)
+  proba = ec/(1+ec)
+  return proba
+
+#binomial function for probability pf bursting inside sylleptic(MOD4)
+def burst_in_sylleptic(nb_siblings_V, nb_siblings_M, fate='V'):
+   proba = burst_in_sylleptic_proba(nb_siblings_V, nb_siblings_M, fate)
+   return bool(binomial(1,proba,1)[0])
+
+#gamma dist number of nodes of new shoots(MOD5)
+def length_new_in_sylleptic():  
+  len=numpy.random.gamma(shape=2.376818, scale=1/1.197655)
+  if len < 0:
+    len=0
+  return len
+
+#PROLEPTIC
+
+#nb_buds in proleptic
+nb_mvb_in_proleptic_lambda= exp(0.1061)
+
+#poisson function for number of buds inside proleptic shoots
+nb_mvb_in_proleptic = max(1,int(poisson(nb_mvb_in_proleptic_lambda,1)[0]))
+
+#bud type in proleptic shoots(MOD2)
+def bud_type_in_proleptic(rank):
+  name=["V","B","M"]
+  nb_mvb_in_proleptic
+  coefs = [0.,28.109405+44.244359*rank-66.9705830*rank**(0.5)-6.62976360*rank**(2)+0.623165597*rank**(3)-0.0221203157*rank**(4),-1.342972+0.140585*rank+0.1448854*rank**(0.5)+0.06661479*rank**(2)-0.008611708*rank**(3)+0.0002449118*rank**(4)]
+  probas = numpy.exp(coefs)/sum(numpy.exp(coefs))
+  nbs = multinomial(nb_mvb_in_proleptic,probas,1)[0]
+  if nbs[1] > 0: return ["B"]
+  else: 
+    buds=nbs[0]*[name[0]]+nbs[2]*[name[2]]
+    shuffle(buds)
+    return buds
+
+#probability of bursting in proleptic shoots (MOD3)
+def burst_in_proleptic_proba(siblings_mv, norm_distance,fate='V'):
+  latent = 1.9914-0.09149*siblings_mv+2.9827*norm_distance
+  if fate == 'M': latent += -0.8290*siblings_mv +2.3983*norm_distance
+  odd = exp(latent)
+  proba = odd/(1+odd)
+  return proba
+
+#binomial function for probability of bursting in proleptic(MOD3)
+def burst_in_proleptic(siblings_mv, norm_distance,fate='V'):
+   proba = burst_in_proleptic_proba(siblings_mv, norm_distance,fate='V')
+   return bool(binomial(1,proba,1)[0])
+
+#length of new shoots(MOD6)
+def length_new_in_proleptic(length,norm_distance, fate='V'):
+  len=1.252965+0.067470*length+6.256609*norm_distance
+  if fate =='M': 
+    len += 0.039516*length+1.455136*norm_distance
+  if len < 0:
+    len=0
+  return float(len)
+
+#CLUSTERS(proleptic and sylleptic)
+def have_clusters_proba(length, siblings_mv):
+  latent = 0.015346*length-0.620204*siblings_mv
+  ec = exp(latent)
+  proba = ec/(1+ec)
+  return proba
+  
+def have_clusters(length, siblings_mv):
+   proba = have_clusters_proba(length, siblings_mv)
+   return bool(binomial(1,proba,1)[0])
+
+#NUTS(proleptic and sylleptic)
+def number_nuts_lambda(length, siblings_mv):
+  latent = 0.19511+0.01148*length-0.37020*siblings_mv
+  return exp(latent)
+  
+def number_nuts(length, siblings_mv):
+  lambda_=number_nuts_lambda(length, siblings_mv)
+  return max (1,int(poisson(lambda_,1)[0]))
+  
+#DIAMETER
+#function for the relationship between diameter in cm and length in cm
+def diameter(length):
+  return float (0.152679*(length**0.37395))
+  
+#JUVENILITY=
+def length_new_juven(length,norm_distance):
+  len= 0.8*length+5*norm_distance
+  if len < 0:
+    len=0
+  return float(len)
+
+#date
+current_date = datetime(2012,1,1)
+endjuvenility=2013 #un anno di giovanilità
+last_year = 2015 #set a variable to finisch
+
+
+def StartEach():#non toccare MAI
+  global current_year, current_date
+  current_date += timedelta(days=31)
+
+#count number of nuts
+nbnuts = None
+
+def EndEach(lstring, lscene):
+#print(str(lstring))
+  global nbnuts
+  nbnuts = 0
+  for mod in lstring:
+    if mod.name == "Nut":
+      nbnuts += 1
+
+#we have to define the module we use
+module ProlBud
+module SylBud
+module MixedBud
+module Internode
+module Nut
+module Catkin
+module Leaf
+
+#starter
+Axiom: 
+  d = 1
+  defdiam = round(float(diameter(trunklength))/2,2)
+  nbnodes = max(1,shootnbnodesfromlength(trunklength))
+  internodelength = round(trunklength/float(nbnodes),2)#internode length
+  midrank = (nbnodes+1)/2#median rank 
+  nproduce Info ;(6)Elasticity(0.0005)_(d) F(length_axiom)
+  for	i	 in range(4):
+    nproduce /(i/90)&(40)
+    for rank in range(1,nbnodes):
+      nproduce ;(3)Internode(internodelength, defdiam, 'P')
+      if rank >= (midrank/2):
+        if rank % 2 == 1:
+          nproduce [&(90)f(defdiam)D(defdiam),(5)ProlBud(trunklength, current_date,False)]
+        else:
+          nproduce [&(-90)f(defdiam)D(defdiam),(5)ProlBud(trunklength, current_date,False)]
+
+derivation length: 1
+production:
+
+
+interpretation:
+
+Info --> [@2D @M(0.8,0.8) @L(str(current_date.month)+ "/" +str(current_date.year)+" "+str(getIterationNb())+" "+"nuts nb: "+str(nbnuts))]
+
+Internode(l,d,t) :
+  cmap = {'P' : 1, 'S' : 2}
+  produce ,(cmap[t])_(d)F(l,d)f(0.01)
+
+#D(d) --> f(d)
+
+Nut(t) :
+  cmap = {'P' : 7, 'S' : 6}
+  if current_date.month == 9 and NUTSY:
+    produce _(0.2)@Tp(0,0,-1) @Ts(0.2)nF(3,0.22),(cmap[t])f(1)@O(1)
+
+Leaf:
+  if current_date.month >= 4 and current_date.month <= 10 and LEAFY:
+    produce ,(2)@g(leafshape, 8)
+
+Catkin:
+  if current_date.month != 3 :
+    nproduce EndGC _(0.2),(4) @Tp(0,0,-1) @Ts(0.2) StartGC [nF(5,0.2)][+(30)nF(5,0.2)][-(30)nF(5,0.2)]
+    
+BlindNode-->f(0.01)
+ProlBud(length, year, mixed)-->@O(0.12)
+
+endlsystem
