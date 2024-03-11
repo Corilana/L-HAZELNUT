@@ -1,0 +1,1 @@
+{"Internode": 1, "Nut": 2, "Leaf": 3, "Catkin": 4, "BlindNode": 5, "ProlBud": 6}
