@@ -1,0 +1,22 @@
+clusters
+
+Call:
+glm(formula = cl ~ length + siblings_mv + abs_norm_median_distance + 
+    0, family = "binomial", data = mix)
+
+Coefficients:
+                          Estimate Std. Error z value Pr(>|z|)    
+length                    0.025647   0.003799   6.751 1.47e-11 ***
+siblings_mv              -0.630249   0.069992  -9.005  < 2e-16 ***
+abs_norm_median_distance -2.083325   0.536838  -3.881 0.000104 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 941.29  on 679  degrees of freedom
+Residual deviance: 816.30  on 676  degrees of freedom
+AIC: 822.3
+
+Number of Fisher Scoring iterations: 4
+

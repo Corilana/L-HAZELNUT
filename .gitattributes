@@ -1,0 +1,5 @@
+simulations/outputs/simulations/merged/parent_success.csv filter=lfs diff=lfs merge=lfs -text
+simulations/outputs/simulations/merged/child_success.csv filter=lfs diff=lfs merge=lfs -text
+simulations/outputs/simulations/merged/child_insuccess.csv filter=lfs diff=lfs merge=lfs -text
+lpy_models/Simulations/lhazelnut.obj filter=lfs diff=lfs merge=lfs -text
+simulations/data/child_sampled_as_deruta.csv filter=lfs diff=lfs merge=lfs -text

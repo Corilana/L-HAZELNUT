@@ -1,0 +1,19 @@
+2_PRO_blind_node
+
+Call:
+glm(formula = b ~ rank_node + 0, family = "binomial", data = met)
+
+Coefficients:
+          Estimate Std. Error z value Pr(>|z|)    
+rank_node  -0.4663     0.0293  -15.92   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 1472.24  on 1062  degrees of freedom
+Residual deviance:  576.58  on 1061  degrees of freedom
+AIC: 578.58
+
+Number of Fisher Scoring iterations: 6
+

@@ -1,0 +1,24 @@
+5_proba_new_shoots_PRO
+
+Call:
+glm(formula = presence_new_shoot ~ siblings_mv:fate + norm_median_distance:fate, 
+    family = "binomial", data = MV.bud.PRO)
+
+Coefficients:
+                           Estimate Std. Error z value Pr(>|z|)    
+(Intercept)                  1.9914     0.1259  15.813  < 2e-16 ***
+siblings_mv:fateV           -0.9149     0.1886  -4.850 1.23e-06 ***
+siblings_mv:fateM           -0.8290     0.1687  -4.913 8.97e-07 ***
+fateV:norm_median_distance   2.9827     0.4590   6.498 8.16e-11 ***
+fateM:norm_median_distance   2.3983     0.5841   4.106 4.03e-05 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 741.96  on 799  degrees of freedom
+Residual deviance: 619.75  on 795  degrees of freedom
+AIC: 629.75
+
+Number of Fisher Scoring iterations: 5
+

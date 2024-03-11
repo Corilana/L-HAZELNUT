@@ -1,0 +1,19 @@
+4_nb_buds_PRO
+
+Call:
+glm(formula = tot_buds_mv ~ 1, family = "poisson", data = met)
+
+Coefficients:
+            Estimate Std. Error z value Pr(>|z|)    
+(Intercept)  0.12358    0.03536   3.495 0.000473 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 101.14  on 706  degrees of freedom
+Residual deviance: 101.14  on 706  degrees of freedom
+AIC: 1566.2
+
+Number of Fisher Scoring iterations: 4
+

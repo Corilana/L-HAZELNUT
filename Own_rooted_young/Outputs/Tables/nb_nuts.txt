@@ -1,0 +1,21 @@
+nb_nuts
+
+Call:
+glm(formula = nu ~ norm_median_distance, family = "poisson", 
+    data = mix)
+
+Coefficients:
+                     Estimate Std. Error z value Pr(>|z|)    
+(Intercept)            1.0277     0.0346  29.697  < 2e-16 ***
+norm_median_distance   0.5728     0.1510   3.794 0.000148 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for poisson family taken to be 1)
+
+    Null deviance: 155.61  on 324  degrees of freedom
+Residual deviance: 141.08  on 323  degrees of freedom
+AIC: 1080.6
+
+Number of Fisher Scoring iterations: 4
+
