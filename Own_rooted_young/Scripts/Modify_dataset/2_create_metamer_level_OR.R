@@ -5,7 +5,7 @@
 #year: 2022
 library(janitor);library(readxl);library(dplyr);library(plyr)
 
-source("Own_rooted_young/Scripts/Modify_dataset/1_create_shootlevel_OR.R")
+source("Scripts/Modify_dataset/1_create_shootlevel_OR.R")
 
 new_shoots = read_excel("Data/2021Inne_autor.xlsx",.name_repair = make_clean_names,sheet = "2021DFAUTO")
 new_shoots=data.frame(new_shoots)
@@ -40,6 +40,7 @@ for (i in 1:nline) {
   fin_col = grep("b_3$", colnames(new_shoots))
   for (j in 1:rep) {
     dt = df[start_col:fin_col]
+    print(dt)
     if (!is.na(dt[1])){
       nb_nodes = sum(nb_nodes , 1, na.rm = T)
     }
