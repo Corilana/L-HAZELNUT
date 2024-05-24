@@ -4,11 +4,10 @@
 
 library(janitor);library(readxl);library(dplyr)
 
-shoot = read_excel("Cultivars/TondaGiffoniOR/Data/2020Inne_autor.xlsx",.name_repair = make_clean_names,sheet = "Own_rooted_young")
+shoot = read_excel("Data/2020Inne_autor.xlsx",.name_repair = make_clean_names,sheet = "Own_rooted_young")
 shoot=data.frame(shoot)
 str(shoot)
 shoot$class=factor(shoot$class,levels = c("Sh","Me","Lo","VLo"))
-
 
 names(shoot)
 shoot = dplyr::mutate(shoot, "tot_buds_m+v+b+c" = NA, .after = b)

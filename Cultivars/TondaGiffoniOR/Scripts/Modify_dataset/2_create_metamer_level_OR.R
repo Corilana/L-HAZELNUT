@@ -5,9 +5,9 @@
 #year: 2022
 library(janitor);library(readxl);library(dplyr);library(plyr)
 
-source("Scripts/Modify_dataset/1_create_shootlevel_OR.R")
+source("Cultivars/TondaGiffoniOR/Scripts/Modify_dataset/1_create_shootlevel_OR.R")
 
-new_shoots = read_excel("Data/2021Inne_autor.xlsx",.name_repair = make_clean_names,sheet = "2021DFAUTO")
+new_shoots = read_excel("Cultivars/TondaGiffoniOR/Data/2021Inne_autor.xlsx",.name_repair = make_clean_names,sheet = "2021DFAUTO")
 new_shoots=data.frame(new_shoots)
 str(new_shoots)
 new_shoots$class=factor(new_shoots$class,levels = c("Sh","Me","Lo","VLo"))

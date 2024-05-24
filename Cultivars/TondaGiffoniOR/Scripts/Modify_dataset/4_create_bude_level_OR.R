@@ -5,7 +5,7 @@
 library(janitor);library(readxl);library(dplyr);library(plyr)
 library(stringr);library(qpcR)
 
-source("Own_rooted_young/Scripts/Modify_dataset/3_modify_shootlevel_OR.R")
+source("Cultivars/TondaGiffoniOR/Scripts/Modify_dataset/3_modify_shootlevel_OR.R")
 
 met=metamer
 

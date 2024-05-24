@@ -4,7 +4,7 @@
 
 library(janitor);library(readxl);library(dplyr);library(data.table)
 
-source("Own_rooted_young/Scripts/Modify_dataset/5_modify_shoot&met_level_OR.R")
+source("Cultivars/TondaGiffoniOR/Scripts/Modify_dataset/5_modify_shoot&met_level_OR.R")
 
 met.all.proleptic=met
 rm(bud,shoot,met)
@@ -72,13 +72,13 @@ toremove <- grep("proleptic$|sylleptic$|PRO$|SYL$|shoot|^bud$|^met$", ls(), inve
 rm(list = c(toremove, "toremove"))
 
 #write
-fwrite(bud, "Own_rooted_young/Data/bud.csv")
-fwrite(bud.proleptic, "Own_rooted_young/Data/bud_proleptic.csv")
-fwrite(bud.sylleptic, "Own_rooted_young/Data/bud_sylleptic.csv")
-fwrite(met, "Own_rooted_young/Data/met_proleptic.csv")
-fwrite(met.sylleptic, "Own_rooted_young/Data/met_sylleptic.csv")
-fwrite(met.all.sylleptic, "Own_rooted_young/Data/all_met_sylleptic.csv")
-fwrite(met.all.proleptic, "Own_rooted_young/Data/all_met_proleptic.csv")
-fwrite(MV.bud.PRO, "Own_rooted_young/Data/MV_bud_pro.csv")
-fwrite(MV.bud.SYL, "Own_rooted_young/Data/MV_bud_syl.csv")
-fwrite(shoot, "Own_rooted_young/Data/shoot.csv")
+fwrite(bud, "Cultivars/TondaGiffoniOR/Data/bud.csv")
+fwrite(bud.proleptic, "Cultivars/TondaGiffoniOR/Data/bud_proleptic.csv")
+fwrite(bud.sylleptic, "Cultivars/TondaGiffoniOR/Data/bud_sylleptic.csv")
+fwrite(met, "Cultivars/TondaGiffoniOR/Data/met_proleptic.csv")
+fwrite(met.sylleptic, "Cultivars/TondaGiffoniOR/Data/met_sylleptic.csv")
+fwrite(met.all.sylleptic, "Cultivars/TondaGiffoniOR/Data/all_met_sylleptic.csv")
+fwrite(met.all.proleptic, "Cultivars/TondaGiffoniOR/Data/all_met_proleptic.csv")
+fwrite(MV.bud.PRO, "Cultivars/TondaGiffoniOR/Data/MV_bud_pro.csv")
+fwrite(MV.bud.SYL, "Cultivars/TondaGiffoniOR/Data/MV_bud_syl.csv")
+fwrite(shoot, "Cultivars/TondaGiffoniOR/Data/shoot.csv")
