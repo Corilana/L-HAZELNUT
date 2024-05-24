@@ -1,19 +1,19 @@
 #proporzione nodi con rami sillettici
 #2023
 #francesca Grisafi
-source("scripts/useful_functions.R")
+source("simulations/Rscripts/useful_functions.R")
 
 library(plotrix);library(data.table)
 
 # importa dataset REAL ---------------------------------------------------------
-real_shoot=data.frame(fread("data/real_buds_deruta.csv",stringsAsFactors = T))
+real_shoot=data.frame(fread("simulations/data/real_buds_deruta.csv",stringsAsFactors = T))
 head(real_shoot)
 #la scala è a livello di GEMME dobbiamo portarla a livello NODO
 real_shoot = unique(real_shoot[c("length", "shoot_ID","rank_node","shoot_type")])
 real_shoot$shoot_type=factor(real_shoot$shoot_type, levels = c("PROLEPTIC","SYLLEPTIC")) 
 
 # importa dataset SIMULATED come Deruta -----------------------------------
-all_sim=data.frame(fread("data/parent_sampled_as_deruta.csv",stringsAsFactors = T))
+all_sim=data.frame(fread("simulations/data/parent_sampled_as_deruta.csv",stringsAsFactors = T))
 head(all_sim)
 #la scala è a livello di GEMME dobbiamo portarla a livello NODO
 #inseriamo la tipologia di gergmolio da cui deriva la gemma
