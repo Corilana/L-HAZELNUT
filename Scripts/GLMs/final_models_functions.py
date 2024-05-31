@@ -19,7 +19,7 @@ def shootnbnodesfromlength_proba(shoot):
     y = shoot['node']
 
     # Aggiunta dell'intercetta (costante) al modello
-    X = sm.add_constant(X, has_constant='add')
+    X = sm.add_constant(X)
 
     # Creazione e addestramento del modello di regressione lineare
     model = sm.OLS(y, X).fit()
@@ -406,7 +406,20 @@ def number_nuts_lambda(bud):
 
     return model
 
+def model_func(x, a, b):
+    return a * (x ** b)
 
+
+def diameter_proba(shoot, xcol="length", ycol="diam"):
+    # Prepara i dati
+    xdata = shoot[xcol]
+    ydata = shoot[ycol]
+
+    # Esegui il fitting del modello ai dati
+    # `popt` conterrà i parametri ottimizzati (a e b in questo caso)
+    popt, pcov = curve_fit(model_func, xdata, ydata, p0=[1, 1])
+
+    print(f"Parameters: a={popt[0]:.2f}, b={popt[1]:.2f}")
 def diameter_proba(length):
     mean = 0.152679 * (length ** 0.37395)
     std = 0.05933

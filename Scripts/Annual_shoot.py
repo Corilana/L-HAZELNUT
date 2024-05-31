@@ -37,30 +37,3 @@ def length_nbnodes(df: pd.DataFrame, class_column: str, x_column: str,
     plt.legend(title='Class')
     return plt
 
-
-def model_func(x, a, b):
-    return a * (x ** b)
-
-
-def len_diamet(data, xcol="length", ycol="diam"):
-    # Prepara i dati
-    xdata = data[xcol]
-    ydata = data[ycol]
-
-    # Esegui il fitting del modello ai dati
-    # `popt` conterrà i parametri ottimizzati (a e b in questo caso)
-    popt, pcov = curve_fit(model_func, xdata, ydata, p0=[1, 1])
-
-    # Usa i parametri ottimizzati per predire i valori di y
-    xrange = np.linspace(0, 75, 100)
-    y_pred = model_func(xrange, *popt)
-
-    # plot data and model
-    plt.scatter(xdata, ydata, label='Data')
-    plt.plot(xrange, y_pred, color='red', linewidth=2, label='Fitted model')
-    plt.xlabel(xcol)
-    plt.ylabel(ycol)
-    plt.legend()
-    plt.show()
-
-    print(f"Parameters: a={popt[0]:.2f}, b={popt[1]:.2f}")

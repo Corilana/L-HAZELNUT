@@ -220,3 +220,20 @@ def plot_mv_proportion(model, data_poly, predictor_col='rank_node', response_col
     if save:
         plt.savefig(f"{path_save}/4_PRO_prop_MV.png", dpi=150)
 
+def diameter_proba(shoot, xcol="length", ycol="diam"):
+    # Prepara i dati
+    xdata = shoot[xcol]
+    ydata = shoot[ycol]
+    # Usa i parametri ottimizzati per predire i valori di y
+    xrange = np.linspace(0, 75, 100)
+    y_pred = model_func(xrange, *popt)
+
+    # plot data and model
+    plt.scatter(xdata, ydata, label='Data')
+    plt.plot(xrange, y_pred, color='red', linewidth=2, label='Fitted model')
+    plt.xlabel(xcol)
+    plt.ylabel(ycol)
+    plt.legend()
+    plt.show()
+
+
