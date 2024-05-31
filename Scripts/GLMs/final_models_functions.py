@@ -7,6 +7,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from scipy.stats import gamma
 from scipy.optimize import minimize
 from scipy.special import gammaln
+import statsmodels.formula.api as smf
 
 
 def shootnbnodesfromlength_proba(shoot):
@@ -18,15 +19,18 @@ def shootnbnodesfromlength_proba(shoot):
     X = shoot[['length_05', 'length_2']]
     y = shoot['node']
 
-    # Aggiunta dell'intercetta (costante) al modello
-    X = sm.add_constant(X)
-
     # Creazione e addestramento del modello di regressione lineare
     model = sm.OLS(y, X).fit()
 
     # Stampa del sommario del modello
     sum = model.summary()
     print(sum)
+
+    # Calcolo del Residual Standard Error (RSE)
+    residuals = model.resid
+    degrees_of_freedom = len(y) - len(model.params)
+    rse = np.sqrt(np.sum(residuals**2) / degrees_of_freedom)
+    print("Residual Standard Error (RSE):", rse)
 
     # Calcolo dell'AIC del modello
     aic = model.aic
@@ -56,15 +60,19 @@ def has_blind_node_proba(metamer_proleptic):
 
     return model
 
-
 def has_sylleptic_proba(metamer_proleptic):
-    # Define the dependent variable 'b' and the independent variable 'rank_node'
-    y = metamer_proleptic['shoot_type']
+    metamer_proleptic = metamer_proleptic.dropna(subset=['shoot_type', 'abs_norm_median_distance'])
+
+    # Converti 'shoot_type' in numerico, deve essere binario (0 o 1)
+    metamer_proleptic['shoot_type_binary'] = pd.get_dummies(metamer_proleptic['shoot_type'], drop_first=True)
+    metamer_proleptic['abs_norm_median_distance'] = pd.to_numeric(metamer_proleptic['abs_norm_median_distance'],errors='coerce')
+
+    # Definisci la variabile dipendente e indipendente
+    y = metamer_proleptic['shoot_type_binary']
     X = metamer_proleptic[['abs_norm_median_distance']]
 
-    # Add a constant term to the independent variables
-    # In this case, the R formula 'b ~ rank_node + 0' suggests no intercept, so we skip adding a constant
-    # X = sm.add_constant(X)
+    # Assicurati che non ci siano valori nulli dopo la conversione
+    metamer_proleptic = metamer_proleptic.dropna(subset=['shoot_type_binary', 'abs_norm_median_distance'])
 
     # Fit the GLM model with binomial family
     model = sm.GLM(y, X, family=sm.families.Binomial()).fit()
@@ -79,54 +87,72 @@ def has_sylleptic_proba(metamer_proleptic):
     return model
 
 
-def bud_type_in_proleptic(bud_proleptic, response_col="fate", predictor_col="rank_node", ranklimit=16, degree=4):
-    """
-    This function fits a multinomial logistic regression model with polynomial terms and prints the summary.
+def nb_mv_in_sylleptic_lambda(met_sylleptic):
+    # Fit the binomial logistic regression model
+    X = met_sylleptic[["parent_length_cm", "abs_norm_median_distance"]]
+    y = met_sylleptic["tot_buds_syl_m_v"]
 
-    Parameters:
-    - bud_proleptic: DataFrame containing the data.
-    - response_col: Name of the response variable column.
-    - predictor_col: Name of the predictor variable column.
-    - degree: Degree of the polynomial terms (default is 4).
-    """
-    data_poly = bud_proleptic[bud_proleptic[predictor_col] <= ranklimit].copy()
-
-    # Generate polynomial features
-    poly = PolynomialFeatures(degree)
-    poly_features = poly.fit_transform(data_poly[[predictor_col]])
-
-    poly_df = pd.DataFrame(poly_features, columns=poly.get_feature_names([predictor_col]))
-    poly_df[f'{predictor_col}0.5'] = np.sqrt(data_poly[predictor_col])
-
-    # Combine the original data with the new polynomial features
-    data_poly = pd.concat([data_poly.reset_index(drop=True), poly_df], axis=1)
-
-    # Fit the multinomial logistic regression model
-    y = data_poly[response_col]
-    X = data_poly.drop(columns=[response_col])
-
-    # Adding a constant term
     X = sm.add_constant(X)
 
-    model = sm.MNLogit(y, X).fit()
+    model = sm.GLM(y, X, family=sm.families.Poisson()).fit()
 
     # Print the summary of the model
     print(model.summary())
 
-    # Calculate the AIC
+    # Calculate and print AIC
     aic = model.aic
-    print("AIC bud_type_in_proleptic:", aic)
+    print("AIC: nb_mv_in_sylleptic_lambda", aic)
 
-    # Compute the exponentiated coefficients
-    exp_coef = np.exp(model.params)
-    print("Exponentiated Coefficients:\n", exp_coef)
 
-    # Compute p-values
-    z = model.params / model.bse
-    p_values = (1 - norm.cdf(np.abs(z))) * 2
-    print("P-values:\n", p_values)
+def nb_v_in_sylleptic_lambda(MV_bud_SYL):
+    """
+    This function fits a Poisson regression model and prints the summary.
 
-    return model, data_poly
+    Parameters:
+    - MV_bud_SYL: DataFrame containing the data.
+    """
+
+    # Fit the Poisson regression model
+    MV_bud_SYL["fate_binary"] = pd.get_dummies(MV_bud_SYL["fate"], drop_first=True)
+    y = MV_bud_SYL["fate_binary"]
+    # Define the independent variable as a column of ones (intercept only model)
+    X = np.ones(len(MV_bud_SYL))
+    model = sm.GLM(y, X, family=sm.families.Binomial()).fit()
+
+    # Print the summary of the model
+    print(model.summary())
+
+    # Calculate and print AIC
+    aic = model.aic
+    print("AIC SYL_mv_proportion:", aic)
+
+    return model
+
+
+def burst_in_sylleptic_proba(MV_bud_SYL, predictor1_col="m", interaction_col="fate", predictor2_col="v"):
+    """
+    This function fits a logistic regression model with interaction terms and prints the summary.
+
+    Parameters:
+    - MV_bud_SYL: DataFrame containing the data.
+    - predictor1_col: Name of the first predictor variable column.
+    - predictor2_col: Name of the second predictor variable column.
+    - interaction_col: Name of the interaction variable column.
+    """
+    # Convert nb_new_shoots to binary
+    MV_bud_SYL["nb_new_shoots_binary"] = pd.get_dummies(MV_bud_SYL["nb_new_shoots"], drop_first=True)
+
+    # Fit the logistic regression model with interaction terms
+    formula = f'nb_new_shoots_binary ~ {predictor1_col}:{interaction_col} + {predictor2_col}:{interaction_col}'
+    model = smf.logit(formula, data=MV_bud_SYL).fit()
+
+    # Print the summary of the model
+    print(model.summary())
+
+    # Calculate and print AIC
+    aic = model.aic
+    print("AIC: burst_in_sylleptic_proba", aic)
+
 
 
 def nb_mv_in_proleptic_lambda(met_proleptic, response_col="tot_buds_mv"):
@@ -163,37 +189,59 @@ def nb_mv_in_proleptic_lambda(met_proleptic, response_col="tot_buds_mv"):
     print("AIC nb_mv_in_proleptic_lambda:", aic)
 
     return model
-
-
-def nb_v_in_sylleptic_lambda(MV_bud_SYL, response_col="fate"):
+def bud_type_in_proleptic(bud_proleptic, response_col="fate", predictor_col="rank_node", ranklimit=16, degree=4):
     """
-    This function fits a Poisson regression model and prints the summary.
+    This function fits a multinomial logistic regression model with polynomial terms and prints the summary.
 
     Parameters:
-    - MV_bud_SYL: DataFrame containing the data.
+    - bud_proleptic: DataFrame containing the data.
     - response_col: Name of the response variable column.
+    - predictor_col: Name of the predictor variable column.
+    - degree: Degree of the polynomial terms (default is 4).
     """
+    data_poly = bud_proleptic[bud_proleptic[predictor_col] <= ranklimit].copy()
+    # Generate dummy variables for the response column
+    dummies = pd.get_dummies(data_poly[response_col], drop_first=True)
 
-    # Fit the Poisson regression model
-    y = MV_bud_SYL[response_col]
+    # Combine the original DataFrame with the dummies
+    data_poly = pd.concat([data_poly.drop(columns=[response_col]), dummies], axis=1)
 
-    # If predictor_col is '1', it means we want to fit an intercept-only model
-    if predictor_col == '1':
-        X = np.ones(len(y))
-    else:
-        X = MV_bud_SYL[[predictor_col]]
-        X = sm.add_constant(X)  # Add intercept
+    # Generate polynomial features
+    poly = PolynomialFeatures(degree)
+    poly_features = poly.fit_transform(data_poly[[predictor_col]])
 
-    model = sm.GLM(y, X, family=sm.families.Binomial()).fit()
+    poly_df = pd.DataFrame(poly_features, columns=poly.get_feature_names_out([predictor_col]))
+    poly_df[f'{predictor_col}0.5'] = np.sqrt(data_poly[predictor_col])
+
+    # Combine the original data with the new polynomial features
+    data_poly = pd.concat([data_poly.reset_index(drop=True), poly_df], axis=1)
+
+    # Fit the multinomial logistic regression model
+    y = data_poly[dummies.columns]
+    X = data_poly.drop(columns=dummies.columns)
+
+    # Adding a constant term
+    X = sm.add_constant(X)
+
+    model = sm.MNLogit(y, X).fit()
 
     # Print the summary of the model
     print(model.summary())
 
-    # Calculate and print AIC
+    # Calculate the AIC
     aic = model.aic
-    print("AIC SYL_mv_proportion:", aic)
+    print("AIC bud_type_in_proleptic:", aic)
 
-    return model
+    # Compute the exponentiated coefficients
+    exp_coef = np.exp(model.params)
+    print("Exponentiated Coefficients:\n", exp_coef)
+
+    # Compute p-values
+    z = model.params / model.bse
+    p_values = (1 - norm.cdf(np.abs(z))) * 2
+    print("P-values:\n", p_values)
+
+    return model, data_poly
 
 
 def burst_in_proleptic_proba(MV_bud_PRO, predictor1_col="siblings_mv", interaction_col="fate",
@@ -250,28 +298,6 @@ def length_new_in_proleptic_proba(MV_bud_PRO):
     print("AIC length_new_in_proleptic_proba:", aic)
 
     return
-
-
-def burst_in_sylleptic_proba(MV_bud_SYL, predictor1_col="m", interaction_col="fate", predictor2_col="v"):
-    """
-    This function fits a logistic regression model with interaction terms and prints the summary.
-
-    Parameters:
-    - MV_bud_SYL: DataFrame containing the data.
-    - predictor1_col: Name of the first predictor variable column.
-    - predictor2_col: Name of the second predictor variable column.
-    - interaction_col: Name of the interaction variable column.
-    """
-    # Fit the logistic regression model with interaction terms
-    formula = f'nb_new_shoots ~ {predictor1_col}:{interaction_col} + {predictor2_col}:{interaction_col}'
-    model = smf.logit(formula, data=MV_bud_SYL, family=sm.families.Binomial()).fit()
-
-    # Print the summary of the model
-    print(model.summary())
-
-    # Calculate and print AIC
-    aic = model.aic
-    print("AIC: burst_in_sylleptic_proba", aic)
 
 
 def gamma_log_likelihood(params, data):
@@ -431,19 +457,3 @@ def length_new_juven_proba(length, norm_distance):
     std = sqrt(100.63)
     return mean, std
 
-
-def nb_mv_in_sylleptic_lambda(met_sylleptic):
-    # Fit the binomial logistic regression model
-    X = met_sylleptic["parent_length_cm", "abs_norm_median_distance"]
-    y = met_sylleptic["tot_buds_syl_m_v"]
-
-    X = sm.add_constant(X)
-
-    model = sm.GLM(y, X, family=sm.families.Poisson()).fit()
-
-    # Print the summary of the model
-    print(model.summary())
-
-    # Calculate and print AIC
-    aic = model.aic
-    print("AIC: nb_mv_in_sylleptic_lambda", aic)
