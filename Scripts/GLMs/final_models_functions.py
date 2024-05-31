@@ -5,7 +5,7 @@ import numpy as np
 from scipy.stats import norm
 from sklearn.preprocessing import PolynomialFeatures
 
-def length_nbnodes(shoot):
+def shootnbnodesfromlength_proba(shoot):
     # Creazione delle colonne polinomiali
     shoot['length_05'] = shoot['length']**0.5
     shoot['length_2'] = shoot['length']**2
@@ -30,7 +30,7 @@ def length_nbnodes(shoot):
 
     return model
 
-def prop_blind_node(metamer_proleptic):
+def has_blind_node_proba(metamer_proleptic):
     # Define the dependent variable 'b' and the independent variable 'rank_node'
     y = metamer_proleptic['b']
     X = metamer_proleptic[['rank_node']]
@@ -51,7 +51,7 @@ def prop_blind_node(metamer_proleptic):
 
     return model
 
-def PRO_shoot_type(metamer_proleptic):
+def has_sylleptic_proba(metamer_proleptic):
     # Define the dependent variable 'b' and the independent variable 'rank_node'
     y = metamer_proleptic['shoot_type']
     X = metamer_proleptic[['abs_norm_median_distance']]
@@ -72,7 +72,7 @@ def PRO_shoot_type(metamer_proleptic):
 
     return model
 
-def PRO_mv_proportion(bud_proleptic, response_col = "fate", predictor_col = "rank_node", ranklimit = 16, degree=4):
+def bud_type_in_proleptic(bud_proleptic, response_col = "fate", predictor_col = "rank_node", ranklimit = 16, degree=4):
     """
     This function fits a multinomial logistic regression model with polynomial terms and prints the summary.
 
@@ -121,8 +121,7 @@ def PRO_mv_proportion(bud_proleptic, response_col = "fate", predictor_col = "ran
 
     return model, data_poly
 
-
-def PRO_mv_number(met_proleptic, response_col = "tot_buds_mv"):
+def nb_mv_in_proleptic_lambda(met_proleptic, response_col = "tot_buds_mv"):
     """
     This function fits a Poisson regression model and prints the summary.
 
@@ -157,6 +156,13 @@ def PRO_mv_number(met_proleptic, response_col = "tot_buds_mv"):
 
     return model
 
+def burst_in_proleptic_proba():
+def length_new_in_proleptic_proba():
+def have_clusters_proba():
+def number_nuts_lambda():
+def diameter_proba():
+def length_new_juven_proba():
+
 def SYL_mv_proportion(MV_bud_SYL, response_col = "fate"):
     """
     This function fits a Poisson regression model and prints the summary.
@@ -187,9 +193,10 @@ def SYL_mv_proportion(MV_bud_SYL, response_col = "fate"):
 
     return model
 
-def PRO_new_shoots_nb(MV_bud_SYL, response_col = "fate"):
-
-
+def nb_mv_in_sylleptic_lambda():
+def nb_v_in_sylleptic_lambda():
+def burst_in_sylleptic_proba():
+def length_new_in_sylleptic():
 
 
 
